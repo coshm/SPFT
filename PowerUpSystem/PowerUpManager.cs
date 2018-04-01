@@ -9,6 +9,7 @@ public class PowerUpManager : MonoBehaviour {
 
     private const string BUY_PWR_UP_KEY = "space";
     private const string ACTIVATE_PWR_UP_KEY = "a";
+    private const int DEFAULT_SLOT_MACHINE_COST = 100;
     
     private static PowerUpManager powerUpMgr;
     public static PowerUpManager Instance {
@@ -26,6 +27,8 @@ public class PowerUpManager : MonoBehaviour {
     }
 
     public Puck puck;
+    public Text timerText;
+    public int slotMachineCost;
 
     [SerializeField]
     public List<GameObject> allPowerUpPrefabs;
@@ -36,13 +39,21 @@ public class PowerUpManager : MonoBehaviour {
     [SerializeField]
     public List<IPowerUp> expiredPowerUps;
 
+    private ScoreManager scoreMgr;
+
     void Init() {
         if (puck == null) {
             throw new InvalidOperationException("Puck cannot be null.");
         }
+        scoreMgr = ScoreManager.Instance;
+        UpdateTimerDisplay(0f);
     }
 
     void Awake() {
+        if (slotMachineCost == 0) {
+            slotMachineCost = DEFAULT_SLOT_MACHINE_COST;
+        }
+
         if (allPowerUpPrefabs == null || allPowerUpPrefabs.Count == 0) {
             throw new InvalidOperationException("There must be at least one PowerUp in allPowerUps.");
         }
@@ -94,6 +105,7 @@ public class PowerUpManager : MonoBehaviour {
     }
 
     public void DeactivatePowerUp(IPowerUp powerUp) {
+        powerUp.Deactivate();
         activePowerUps.Remove(powerUp);
         expiredPowerUps.Add(powerUp);
     }
@@ -102,6 +114,12 @@ public class PowerUpManager : MonoBehaviour {
         // Get random PowerUp prefab and instantiate it
         GameObject powerUpPrefab = allPowerUpPrefabs[Random.Range(0, allPowerUpPrefabs.Count)];
         return Instantiate(powerUpPrefab, Vector3.zero, Quaternion.identity).GetComponent<IPowerUp>();
+    }
+
+    public void UpdateTimerDisplay(float seconds) {
+        int min = (int) (seconds / 60f);
+        int sec = (int) (seconds % 60f);
+        timerText.text = $"{min}:{sec}";
     }
 
     /* ~~~~~~~~~~~~~~~~~~~~ Unity Event Handlers ~~~~~~~~~~~~~~~~~~~~ */
@@ -121,6 +139,20 @@ public class PowerUpManager : MonoBehaviour {
         if (genericPayload.GetType() == typeof(PowerUpExpiredPayload)) {
             PowerUpExpiredPayload pwrUpExpiredPayload = (PowerUpExpiredPayload)genericPayload;
             activePowerUps.Remove(pwrUpExpiredPayload.PowerUp);
+        }
+    }
+
+    public void OnCancelActivePowerUp() {
+        if (activePowerUps.Count > 0) {
+            DeactivatePowerUp(activePowerUps[0]);
+        }
+    }
+
+    public void OnSlotMachinePull() {
+        if (scoreMgr.CanAffordSpending(slotMachineCost)) {
+            IPowerUp powerUpPrize = GetRandomPowerUp();
+            storedPowerUps.Enqueue(powerUpPrize);
+            scoreMgr.SpendScore(slotMachineCost);
         }
     }
 

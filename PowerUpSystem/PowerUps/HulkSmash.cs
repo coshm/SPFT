@@ -63,10 +63,8 @@ public class HulkSmash : MonoBehaviour, IPowerUp {
         if (IsActive) {
             PowerUpExpiredPayload pwrUpExpiredPayload = new PowerUpExpiredPayload(this);
             pwrUpExpiredEvent.Invoke(pwrUpExpiredPayload);
+
             IsActive = false;
-            PowerUpManager.Instance.DeactivatePowerUp(this);
-            // Should we destroy at this point?
-            Destroy(this);
         }
     }
 
@@ -78,9 +76,10 @@ public class HulkSmash : MonoBehaviour, IPowerUp {
         if (pwrUpTrigger.GetType() == typeof(PuckCollisionTrigger)) {
             PuckCollisionTrigger puckCollTrigger = (PuckCollisionTrigger)pwrUpTrigger;
             Collision2D coll = puckCollTrigger.Coll;
-            Puck puck = puckCollTrigger.Puck;
 
             if (coll.gameObject.tag == "Peg" && pegBreakCount < maxPegBreaks) {
+                Puck puck = puckCollTrigger.Puck;
+
                 // Ignore collision with this peg
                 Collider2D puckCollider = puck.gameObject.GetComponent<Collider2D>();
                 Physics2D.IgnoreCollision(coll.collider, puckCollider);

@@ -2,10 +2,16 @@
 using System;
 
 public class Puck : MonoBehaviour {
+
+    enum LaunchState {
+        LAUNCH_READY,
+        LAUNCH_AIMING,
+        LAUNCHED
+    }
     
     private const float DEFAULT_MAX_LAUNCH_PWR = 10f;
 
-    public bool LaunchReady { get; private set; }
+    public LaunchState launchState;
     private float startLaunchXPos;
     public float launchYPos;
     public float maxLaunchPower;
@@ -14,7 +20,6 @@ public class Puck : MonoBehaviour {
     public Vector2 LaunchAimEnd { get; private set; }
 
     private Rigidbody2D puckBody;
-    public delegate void OnPuckCollision(Collision2D coll);
 
     void Awake() {
         if (launchYPos == 0f) {
@@ -31,9 +36,8 @@ public class Puck : MonoBehaviour {
         puckBody = GetComponent<Rigidbody2D>();
         puckBody.bodyType = RigidbodyType2D.Kinematic;
 
-        LaunchReady = true;
+        launchState = LaunchState.LAUNCH_READY;
     }
-
 
     void Start() {
         PowerUpManager.Instance.puck = this;
@@ -41,12 +45,11 @@ public class Puck : MonoBehaviour {
     }
 
     void Update() {
-        if (LaunchReady) {
+        if (launchState == LaunchState.LAUNCH_READY) {
             Vector2 mousePosition = GetMousePosition();
-
-            if (LaunchAimStart == Vector2.zero) {
-                transform.position = new Vector2(mousePosition.x, launchYPos);
-            }
+            transform.position = new Vector2(mousePosition.x, launchYPos);
+        } else if (launchState = LaunchState.LAUNCH_AIMING) {
+            Vector2 mousePosition = GetMousePosition();
             if (Input.GetMouseButtonDown(0)) {
                 LaunchAimStart = mousePosition;
             }
@@ -60,20 +63,16 @@ public class Puck : MonoBehaviour {
     }
 
     void OnCollisionEnter2D(Collision2D coll) {
-        PuckCollisionTrigger puckCollTrigger = new PuckCollisionTrigger(coll, this, HandleCollision);
+        PuckCollisionTrigger puckCollTrigger = new PuckCollisionTrigger(coll, this);
         bool wasHandled = PowerUpManager.Instance.OnPowerUpTrigger(puckCollTrigger);
         if (!wasHandled) {
             HandleCollision(coll);
         }
     }
 
-    public void HandleCollision(Collision2D coll) {
-        // stuff
-    }
-
     private void LaunchPuck() {
         // Enable physics
-        LaunchReady = false;
+        launchState = LaunchState.LAUNCHED;
         puckBody.bodyType = RigidbodyType2D.Dynamic;
 
         // Calculate launch vector and apply it to the Puck
@@ -85,7 +84,7 @@ public class Puck : MonoBehaviour {
 
     public void OnPuckReset(IEventPayload genericPayload) {
         if (genericPayload.GetType() == typeof(PuckResetPayload)) {
-            LaunchReady = true;
+            launchState = LaunchState.LAUNCH_READY;
             puckBody.bodyType = RigidbodyType2D.Kinematic;
             LaunchAimStart = Vector2.zero;
             LaunchAimEnd = Vector2.zero;

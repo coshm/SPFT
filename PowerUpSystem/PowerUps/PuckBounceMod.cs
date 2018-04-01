@@ -42,15 +42,11 @@ public class PuckBounceMod : MonoBehaviour, IPowerUp {
         if (IsActive) {
             pwrUpDuration -= Time.deltaTime;
             if (pwrUpDuration <= 0f) {
-                PowerUpExpiredPayload pwrUpExpiredPayload = new PowerUpExpiredPayload(this);
-                pwrUpExpiredEvent.Invoke(pwrUpExpiredPayload);
-                Destroy(this);
+                pwrUpDuration = 0f;
+                Deactivate();
             }
+            PowerUpManager.Instance.UpdateTimerText(pwrUpDuration);
         }
-    }
-
-    public Guid GetId() {
-        return Id;
     }
 
     public void Activate() {
@@ -61,11 +57,14 @@ public class PuckBounceMod : MonoBehaviour, IPowerUp {
     }
 
     public void Deactivate() {
+        if (isActive) {
+            puck.sharedMaterial.bounciness = originalPuckBounce;
 
-        puck = PowerUpManager.Instance.puck.GetComponent<Rigidbody2D>();
-        originalPuckBounce = puck.sharedMaterial.bounciness;
-        puck.sharedMaterial.bounciness = puckBounceMod;
-        IsActive = true;
+            PowerUpExpiredPayload pwrUpExpiredPayload = new PowerUpExpiredPayload(this);
+            pwrUpExpiredEvent.Invoke(pwrUpExpiredPayload);
+
+            IsActive = false;
+        }
     }
 
     public bool IsBlockingPowerUpActivation(IPowerUp pwrUp) {
@@ -73,32 +72,6 @@ public class PuckBounceMod : MonoBehaviour, IPowerUp {
     }
     
     public bool OnPowerUpTrigger(IPowerUpTrigger pwrUpTrigger) {
-        if (pwrUpTrigger.GetType() == typeof(PuckCollisionTrigger)) {
-            PuckCollisionTrigger puckCollTrigger = (PuckCollisionTrigger) pwrUpTrigger;
-            Collision2D coll = puckCollTrigger.Coll;
-            Puck puck = puckCollTrigger.Puck;
-
-            if (coll.gameObject.tag == "Peg" && pegBreakCount < maxPegBreaks) {
-                // Ignore collision with this peg
-                Collider2D puckCollider = puck.gameObject.GetComponent<Collider2D>();
-                Physics2D.IgnoreCollision(coll.collider, puckCollider);
-
-                pegBreakCount++;
-                //Peg peg = coll.gameObject.GetComponent<Peg>();
-                //peg.Explode();
-
-                UpdatePuckVelPerPegCount();
-
-                StartCoroutine("StutterPuckMovement");
-
-                if (pegBreakCount == maxPegBreaks) {
-                    PowerUpExpiredPayload pwrUpExpiredPayload = new PowerUpExpiredPayload(this);
-                    pwrUpExpiredEvent.Invoke(pwrUpExpiredPayload);
-                    Destroy(this);
-                }
-            }
-            return true;
-        }
         return false;
     }
 }
