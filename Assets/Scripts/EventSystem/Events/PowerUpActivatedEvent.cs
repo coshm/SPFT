@@ -2,7 +2,7 @@
 
 namespace SPFT.EventSystem.Events {
 
-    public struct PowerUpExpiredEvent : IEvent {
+    public struct PowerUpActivatedEvent : IEvent {
         public IPowerUp powerUp;
     }
 

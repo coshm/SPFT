@@ -1,12 +1,13 @@
-﻿using UnityEngine;
+﻿using Random = UnityEngine.Random;
+using UnityEngine;
 using System;
 using System.Collections.Generic;
-using static PowerUpAcquiredPayload;
+using SPFT.EventSystem;
+using SPFT.EventSystem.Events;
+using SPFT.PowerUpSystem;
+using SPFT.PowerUpSystem.PowerUps;
 
 public class StoreManager : MonoBehaviour {
-
-    public const float DEFAULT_COST_PER_PWR_UP = 25f;
-    public const string BUY_RAND_PWR_UP_INPUT = "space";
 
     private static StoreManager storeMgr;
     public static StoreManager Instance {
@@ -22,61 +23,69 @@ public class StoreManager : MonoBehaviour {
             return storeMgr;
         }
     }
+    
+    public bool IsBuyingPowerUp { get; private set; }
 
-    public float Cash { get; private set; }
-    public bool IsRandomizingPowerUps { get; private set; }
+    [SerializeField]
+    public IList<GameObject> powerUpMasterList;
+    public IDictionary<Guid, Sprite> powerUpIconsByGuid;
 
-    public float costPerPwrUp;
-    public Dictionary<Guid, Sprite> powerUpIconsByGuid;
-    public PowerUpAcquiredEvent pwrUpAcquiredEvent;
+    private GameSettings gameSettings;
+    private PlayerWallet wallet;
+    private PowerUpManager powerUpMgr;
 
     void Init() {
         // what should go here?
     }
 
     void Awake() {
-        if (powerUpIconsByGuid == null || powerUpIconsByGuid.Count == 0) {
-            throw new InvalidOperationException("There must be at least one Sprite in powerUpIcons.");
-        }
-        if (costPerPwrUp == 0f) {
-            costPerPwrUp = DEFAULT_COST_PER_PWR_UP;
-        }
-        Cash = 0f;
-        IsRandomizingPowerUps = false;
-        pwrUpAcquiredEvent = new PowerUpAcquiredEvent();
+        //if (powerUpIconsByGuid == null || powerUpIconsByGuid.Count == 0) {
+        //    throw new InvalidOperationException("There must be at least one Sprite in powerUpIcons.");
+        //}
+        IsBuyingPowerUp = false;
+        gameSettings = GameSettings.Instance;
+        wallet = PlayerWallet.Instance;
+        powerUpMgr = PowerUpManager.Instance;
     }
 
     void Start() {
-        if (powerUpIconsByGuid.Count != PowerUpManager.Instance.allPowerUpPrefabs.Count) {
-            throw new InvalidOperationException("There must be one Sprite for each PowerUp.");
+        powerUpMasterList = DataLoader.Instance.LoadPowerUpData();
+        if (powerUpMasterList == null || powerUpMasterList.Count == 0) {
+            throw new InvalidOperationException("There must be at least one PowerUp in allPowerUps.");
         }
+
+        //if (powerUpIconsByGuid.Count != PowerUpManager.Instance.allPowerUpPrefabs.Count) {
+        //    throw new InvalidOperationException("There must be one Sprite for each PowerUp.");
+        //}
     }
 
     void Update() {
-        if (Input.GetKeyDown(BUY_RAND_PWR_UP_INPUT)) {
-            if (!IsRandomizingPowerUps && Cash >= costPerPwrUp) {
-                SpinPowerUpSlotMachine();
-            } else if (IsRandomizingPowerUps) {
-                StopPowerUpSlotMachine();
+        if (Input.GetButtonDown(gameSettings.buyPowerUp)) {
+            bool canAffordPwrUp = wallet.CanAffordCharge(gameSettings.powerUpCost);
+            if (!IsBuyingPowerUp && canAffordPwrUp) {
+                BuyRandomPowerUp();
             }
         }
     }
 
-    private void SpinPowerUpSlotMachine() {
-        Cash -= costPerPwrUp;
-        IsRandomizingPowerUps = true;
-        // spin slot machine with powerup icons
-    }
+    private void BuyRandomPowerUp() {
+        // kick off slot machine animation
 
-    private void StopPowerUpSlotMachine() {
-        IsRandomizingPowerUps = false;
-        IPowerUp randomPowerUp = PowerUpManager.Instance.GetRandomPowerUp();
-        Sprite powerUpIcon = powerUpIconsByGuid[randomPowerUp.Id];
-        // stop slot reel on the given icon
+        // Select and instantiate a random PowerUp from the master list.
+        GameObject powerUpTemplate = powerUpMasterList[Random.Range(0, powerUpMasterList.Count)];
+        IPowerUp pwrUp = Instantiate(powerUpTemplate, Vector3.zero, Quaternion.identity).GetComponent<IPowerUp>();
 
-        // Notify listeners that we have acquired a new payload, this will activate the PowerUp
-        PowerUpAcquiredPayload pwrUpAcquiredPayload = new PowerUpAcquiredPayload(randomPowerUp, ActivationType.IMMEDIATE);
-        pwrUpAcquiredEvent.Invoke(pwrUpAcquiredPayload);
+        // Charge the player for the cost of a PowerUp.
+        wallet.ChargePlayer(gameSettings.powerUpCost);
+
+        Debug.Log($"Successfully bought the {pwrUp.GetType().ToString()} PowerUp Type.");
+
+        // Notify listeners that a PowerUp has been acquired.
+        PowerUpAcquiredEvent powerUpAcquiredEvent = new PowerUpAcquiredEvent() {
+            powerUp = pwrUp,
+            activationType = PowerUpActivationType.MANUAL
+        };
+        EventManager.Instance.NotifyListeners(powerUpAcquiredEvent);
     }
 
 }

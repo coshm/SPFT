@@ -1,3 +1,15 @@
-﻿using UnityEngine.Events;
+﻿using SPFT.PowerUpSystem.PowerUps;
 
-public class PowerUpAcquiredEvent : UnityEvent<IEventPayload> { }
+namespace SPFT.EventSystem.Events {
+
+    public enum PowerUpActivationType {
+        IMMEDIATE,
+        MANUAL
+    }
+
+    public struct PowerUpAcquiredEvent : IEvent {
+        public IPowerUp powerUp;
+        public PowerUpActivationType activationType;
+    }
+
+}

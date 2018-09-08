@@ -1,5 +1,9 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using System;
+using System.Collections;
+using SPFT.EventSystem;
+using SPFT.EventSystem.Events;
 
 public class Goal : MonoBehaviour {
 
@@ -10,18 +14,22 @@ public class Goal : MonoBehaviour {
     public GameObject rightWall;
     public GameObject floor;
 
-    private ScoreEvent scoreEvent;
-    private PuckResetEvent puckResetEvent;
+    private TextMesh goalText;
 
     void Awake() {
         if (leftWall == null || rightWall == null || floor == null) {
             throw new InvalidOperationException("LeftWall, RightWall, and Floor must be set in the editor.");
         }
+
+        goalText = GetComponentInChildren<TextMesh>();
+        if (goalText == null) {
+            throw new InvalidOperationException("Goal's child object must have a TextMesh component.");
+        }
+        goalText.text = score.ToString();
     }
     
     void Start() {
-        scoreEvent = EventManager.Instance.GetOrAddEventWithPayload(new ScoreEvent());
-        puckResetEvent = EventManager.Instance.GetOrAddEventWithPayload(new PuckResetEvent());
+
     }
     
     void Update() {
@@ -31,19 +39,16 @@ public class Goal : MonoBehaviour {
     void OnTriggerEnter2D(Collider2D coll) {
         if (coll.gameObject.tag == "Puck") {
             // Puck has scored in this goal
-            ScorePayload scorePayload = new ScorePayload(score);
-            scoreEvent.Invoke(scorePayload);
-
-            // Reset puck back to starting position
-            PuckResetPayload puckResetPayload = new PuckResetPayload();
-            puckResetEvent.Invoke(puckResetPayload);
-            // If there is no payload, then it would just be
-            // puckResetEvent.Invoke(puckResetPayload);
+            PuckScoreEvent puckScoreEvent = new PuckScoreEvent() {
+                cashPrize = score
+            };
+            EventManager.Instance.NotifyListeners(puckScoreEvent);
         }
     }
-
+    
     public void ChangeScore(int newScore) {
         score = newScore;
+        goalText.text = newScore.ToString();
     }
 
 }

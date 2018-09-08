@@ -1,82 +1,63 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
+using SPFT.EventSystem.Events;
 
-public class EventManager : MonoBehaviour
-{
-    private static EventManager eventMgr;
-    public static EventManager Instance {
-        get {
-            if (!eventMgr) {
-                eventMgr = FindObjectOfType(typeof(EventManager)) as EventManager;
+namespace SPFT.EventSystem {
+
+    /* Base Event Interface and EventListener Delegate. All Events will use these. */
+    public delegate void EventListener<E>(E e) where E : IEvent;
+
+    /* This is the actual EventManager that handles registering listeners and notifying them of relevant Events */
+    public class EventManager : MonoBehaviour {
+
+        private static EventManager eventMgr;
+        public static EventManager Instance
+        {
+            get
+            {
                 if (!eventMgr) {
-                    Debug.LogError("There needs to be one active EventManager script on a GameObject in your scene.");
-                } else {
-                    eventMgr.Init();
+                    eventMgr = FindObjectOfType(typeof(EventManager)) as EventManager;
+                    if (!eventMgr) {
+                        Debug.LogError("There needs to be one active EventManager script on a GameObject in your scene.");
+                    } else {
+                        eventMgr.Init();
+                    }
                 }
+                return eventMgr;
             }
-            return eventMgr;
+        }
+
+        void Init() { }
+
+        private Dictionary<Type, List<Delegate>> listenersByEventType;
+
+        void Awake() {
+            listenersByEventType = new Dictionary<Type, List<Delegate>>();
+        }
+
+        public void RegisterListener<E>(EventListener<E> listener) where E : IEvent {
+            Type eventType = typeof(E);
+            if (!listenersByEventType.ContainsKey(eventType)) {
+                listenersByEventType.Add(eventType, new List<Delegate>());
+            }
+
+            listenersByEventType[eventType].Add(listener);
+        }
+
+        public void NotifyListeners<E>(E spftEvent) where E : IEvent {
+            Type eventType = typeof(E);
+            Debug.Log($"Notifying listeners of {eventType}");
+
+            if (!listenersByEventType.ContainsKey(eventType)) {
+                return;
+            }
+
+            List<Delegate> genericDelegates = listenersByEventType[eventType];
+            foreach (Delegate genericDelegate in genericDelegates) {
+                EventListener<E> listener = (EventListener<E>) genericDelegate;
+                listener(spftEvent);
+            }
         }
     }
-
-    private List<UnityEvent> events;
-    private List<UnityEvent<IEventPayload>> eventsWithPayload;
-
-    private List<UnityAction> orphanedListeners;
-    private List<UnityAction<IEventPayload>> orphanedListenersWithPayload;
-
-    void Init() {
-    }
-
-    void Awake() {
-        events = new List<UnityEvent>();
-        eventsWithPayload = new List<UnityEvent<IEventPayload>>();
-    }
-
-    public UnityEvent GetOrAddEvent<E>(E unityEvent) where E : UnityEvent {
-        List<E> eventsOfType = events.OfType<E>().ToList();
-        if (eventsOfType.Count > 1) {
-            throw new InvalidOperationException("There can only be one event for a given type. EventType=" + unityEvent.GetType());
-        } else if (eventsOfType.Count > 1) {
-            return eventsOfType.First();
-        } else {
-            events.Add(unityEvent);
-            return unityEvent;
-        }
-    }
-
-    public E GetOrAddEventWithPayload<E>(E unityEvent) where E : UnityEvent<IEventPayload> {
-        List<E> eventsOfType = eventsWithPayload.OfType<E>().ToList();
-        if (eventsOfType.Count > 1) {
-            throw new InvalidOperationException("There can only be one event for a given type. EventType=" + unityEvent.GetType());
-        } else if (eventsOfType.Count > 1) {
-            return eventsOfType.First();
-        } else {
-            eventsWithPayload.Add(unityEvent);
-            return unityEvent;
-        }
-    }
-
-    public void RegisterListener<E>(UnityAction action) where E : UnityEvent {
-        List<E> eventsOfType = events.OfType<E>().ToList();
-        if (eventsOfType.Count == 0) {
-            orphanedListeners.Add(action);
-        } else {
-            E unityEvent = eventsOfType.First();
-            unityEvent.AddListener(action);
-        }
-    }
-
-    public void RegisterListenerWithPayload<E>(UnityAction<IEventPayload> action) where E : UnityEvent<IEventPayload> {
-        List<E> eventsOfType = eventsWithPayload.OfType<E>().ToList();
-        if (eventsOfType.Count == 0) {
-            orphanedListenersWithPayload.Add(action);
-        } else {
-            E unityEvent = eventsOfType.First();
-            unityEvent.AddListener(action);
-        }
-    }
-
 }

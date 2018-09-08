@@ -7,6 +7,7 @@ public class Peg : MonoBehaviour {
     private Collider2D pegColl;
     private SpriteRenderer pegSprite;
     private ContactFilter2D contactFilter;
+    private GameSettings gameSettings;
 
     void Awake() {
         pegColl = GetComponent<Collider2D>();
@@ -15,8 +16,8 @@ public class Peg : MonoBehaviour {
     }
     
 	void Start () {
-		
-	}
+        gameSettings = GameSettings.Instance;
+    }
 	
 	void Update () {
 		
@@ -44,10 +45,10 @@ public class Peg : MonoBehaviour {
     }
 
     private bool DoesPegOverlapPuck() {
-        Collider2D[] overlapResults = new Collider2D[1];
+        Collider2D[] overlapResults = new Collider2D[20];
         pegColl.OverlapCollider(contactFilter, overlapResults);
         foreach (Collider2D coll in overlapResults) {
-            if (coll.gameObject.tag == "Puck") {
+            if (coll.gameObject.CompareTag(gameSettings.puckTag)) {
                 return true;
             }
         }

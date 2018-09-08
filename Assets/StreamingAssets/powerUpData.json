@@ -1,0 +1,54 @@
+{
+  "powerUpDataList": [
+    {
+      "className": "SPFT.PowerUpSystem.PowerUps.PuckBounceMod",
+      "initArgs": [
+        {
+          "name": "id",
+          "type": "GUID",
+          "value": "a045f6e3-5391-4b25-a816-e5a8891395a6"
+        },
+        {
+          "name": "puckBounceMod",
+          "type": "FLOAT",
+          "value": "1"
+        },
+        {
+          "name": "pwrUpDuration",
+          "type": "FLOAT",
+          "value": "30"
+        }
+      ]
+    },
+    {
+      "className": "SPFT.PowerUpSystem.PowerUps.PegSmasher",
+      "initArgs": [
+        {
+          "name": "id",
+          "type": "GUID",
+          "value": "2cfa8edb-f2fd-41ae-834f-fd7c4405680b"
+        },
+        {
+          "name": "puckVelocityMod",
+          "type": "FLOAT",
+          "value": "1.05"
+        },
+        {
+          "name": "maxPegBreaks",
+          "type": "INT",
+          "value": "3"
+        },
+        {
+          "name": "stutterDuration",
+          "type": "FLOAT",
+          "value": "0.5"
+        },
+        {
+          "name": "pegRespawnDelay",
+          "type": "FLOAT",
+          "value": "1"
+        }
+      ]
+    }
+  ]
+}

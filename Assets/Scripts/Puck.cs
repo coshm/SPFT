@@ -1,92 +1,169 @@
 ﻿using UnityEngine;
-using System;
+using SPFT.EventSystem;
+using SPFT.EventSystem.Events;
+using SPFT.State;
+using SPFT.PowerUpSystem;
+using SPFT.PowerUpSystem.PowerUps;
 
 public class Puck : MonoBehaviour {
-
-    public enum LaunchState {
-        LAUNCH_READY,
-        LAUNCH_AIMING,
-        LAUNCHED
-    }
     
-    private const float DEFAULT_MAX_LAUNCH_PWR = 10f;
-
-    public LaunchState launchState;
     private float startLaunchXPos;
-    public float launchYPos;
-    public float maxLaunchPower;
 
-    public Vector2 LaunchAimStart { get; private set; }
-    public Vector2 LaunchAimEnd { get; private set; }
+    public Vector2 AimingStartPos { get; private set; }
+    public Vector2 AimingEndPos { get; private set; }
 
     private Rigidbody2D puckBody;
+    private GameSettings gameSettings;
+
+    private Vector2 puckLastFrameVel;
+    private Vector2 puckAcceleration;
+    private bool shouldEmitCollisionEvents;
 
     void Awake() {
-        if (launchYPos == 0f) {
-            throw new InvalidOperationException("Must set valid Launch Height.");
-        }
-
-        if (maxLaunchPower == 0f) {
-            maxLaunchPower = DEFAULT_MAX_LAUNCH_PWR;
-        }
-
         Vector3 screenCenter = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width / 2, Screen.height / 2, Camera.main.nearClipPlane));
         startLaunchXPos = screenCenter.x;
+        shouldEmitCollisionEvents = false;
 
         puckBody = GetComponent<Rigidbody2D>();
         puckBody.bodyType = RigidbodyType2D.Kinematic;
-
-        launchState = LaunchState.LAUNCH_READY;
     }
 
     void Start() {
         PowerUpManager.Instance.puck = this;
-        EventManager.Instance.RegisterListenerWithPayload<PuckResetEvent>(OnPuckReset);
+        gameSettings = GameSettings.Instance;
+
+        EventManager.Instance.RegisterListener<PowerUpActivatedEvent>(OnPowerUpActivation);
+        EventManager.Instance.RegisterListener<PowerUpExpiredEvent>(OnPowerUpExpired);
+        EventManager.Instance.RegisterListener<BuyPuckEvent>(OnPuckPurchase);
+    }
+
+    void OnPowerUpActivation(PowerUpActivatedEvent pwrUpActivatedEvent) {
+        if (pwrUpActivatedEvent.powerUp.GetType() == typeof(PegSmasher)) {
+            Debug.Log("Activating PuckPegCollisionEvents.");
+            shouldEmitCollisionEvents = true;
+        }
+    }
+
+    void OnPowerUpExpired(PowerUpExpiredEvent pwrUpExpiredEvent) {
+        if (pwrUpExpiredEvent.powerUp.GetType() == typeof(PegSmasher)) {
+            Debug.Log("Deactivating PuckPegCollisionEvents.");
+            shouldEmitCollisionEvents = false;
+        }
+    }
+
+    void OnPuckPurchase(BuyPuckEvent buyPuckEvent) {
+        // Turn off Puck physics before launch
+        puckBody.bodyType = RigidbodyType2D.Kinematic;
+        puckBody.velocity = Vector2.zero;
+        AimingStartPos = Vector2.zero;
+        AimingEndPos = Vector2.zero;
+        transform.position = new Vector2(startLaunchXPos, gameSettings.puckLaunchY);
+    }
+
+    void OnCollisionEnter2D(Collision2D collision) {
+        if (shouldEmitCollisionEvents && collision.collider.CompareTag(gameSettings.pegTag)) {
+            PuckPegCollisionEvent puckPegCollisionEvent = new PuckPegCollisionEvent() {
+                puck = this,
+                collision = collision
+            };
+            EventManager.Instance.NotifyListeners(puckPegCollisionEvent);
+        }
     }
 
     void Update() {
-        if (launchState == LaunchState.LAUNCH_READY) {
-            Vector2 mousePosition = GetMousePosition();
-            transform.position = new Vector2(mousePosition.x, launchYPos);
-        } else if (launchState == LaunchState.LAUNCH_AIMING) {
-            Vector2 mousePosition = GetMousePosition();
-            if (Input.GetMouseButtonDown(0)) {
-                LaunchAimStart = mousePosition;
-            }
-            if (Input.GetMouseButton(0)) {
-                LaunchAimEnd = mousePosition;
-            }
-            if (Input.GetMouseButtonUp(0)) {
-                LaunchPuck();
-            }
+        MainGameState ganeState = GameStateManager.Instance.State;
+        switch(ganeState) {
+            case MainGameState.PRE_LAUNCH:
+                HandlePreLaunch();
+                break;
+            case MainGameState.LAUNCH_POSITIONING:
+                HandleLaunchPositioning();
+                break;
+            case MainGameState.LAUNCH_AIMING:
+                HandleLaunchAiming();
+                break;
+            case MainGameState.PUCK_DROPPING:
+                HandlePuckDropping();
+                break;
+            case MainGameState.GAME_PAUSED:
+                HandlePuckDropping();
+                break;
         }
     }
 
-    void OnCollisionEnter2D(Collision2D coll) {
-        PuckCollisionTrigger puckCollTrigger = new PuckCollisionTrigger(coll, this);
-        PowerUpManager.Instance.OnPowerUpTrigger(puckCollTrigger);
-    }
-
-    private void LaunchPuck() {
-        // Enable physics
-        launchState = LaunchState.LAUNCHED;
-        puckBody.bodyType = RigidbodyType2D.Dynamic;
-
-        // Calculate launch vector and apply it to the Puck
-        Vector2 launchVector = LaunchAimEnd - LaunchAimStart;
-        float launchPower = launchVector.magnitude > maxLaunchPower ? maxLaunchPower : launchVector.magnitude;
-        Vector2 launchDir = launchVector / launchPower;
-        puckBody.AddForce(launchDir * launchPower, ForceMode2D.Impulse);
-    }
-
-    public void OnPuckReset(IEventPayload genericPayload) {
-        if (genericPayload.GetType() == typeof(PuckResetPayload)) {
-            launchState = LaunchState.LAUNCH_READY;
-            puckBody.bodyType = RigidbodyType2D.Kinematic;
-            LaunchAimStart = Vector2.zero;
-            LaunchAimEnd = Vector2.zero;
-            transform.position = new Vector2(startLaunchXPos, launchYPos);
+    private void HandlePreLaunch() {
+        if (Input.GetButtonDown(gameSettings.buyPuck)) {
+            EventManager.Instance.NotifyListeners(new BuyPuckEvent());
         }
+    }
+
+    private void HandleLaunchPositioning() {
+        Vector2 mousePosition = GetMousePosition();
+        transform.position = new Vector2(mousePosition.x, gameSettings.puckLaunchY);
+
+        if (Input.GetMouseButtonDown(0)) {
+            AimingStartPos = mousePosition;
+            PuckAimingEvent puckAimingEvent = new PuckAimingEvent() {
+                aimingStartPos = AimingStartPos
+            };
+            EventManager.Instance.NotifyListeners(puckAimingEvent);
+        }
+    }
+
+    private void HandleLaunchAiming() {
+        Vector2 mousePosition = GetMousePosition();
+        AimingEndPos = mousePosition;
+
+        // Draw some kind of aiming arrow?
+
+        if (Input.GetMouseButtonUp(0)) {
+            // Enable physics
+            puckBody.bodyType = RigidbodyType2D.Dynamic;
+
+            // Calculate launch vector and apply it to the Puck
+            Vector2 launchVector = AimingEndPos - AimingStartPos;
+            Vector2 launchDir = launchVector / launchVector.magnitude;
+            float launchPower = launchVector.magnitude > gameSettings.maxLaunchPower ? gameSettings.maxLaunchPower : launchVector.magnitude;
+            puckBody.AddForce(launchDir * launchPower, ForceMode2D.Impulse);
+
+            // Notify everyone we launched the Puck
+            PuckLaunchEvent puckLaunchEvent = new PuckLaunchEvent() {
+                aimingEndPos = mousePosition,
+                launchPower = launchPower,
+                launchDir = launchDir
+            };
+            EventManager.Instance.NotifyListeners(puckLaunchEvent);
+        }
+    }
+
+    private void HandlePuckDropping() {
+        ValidatePosition();
+
+        // Calculate acceleration to pass along collision events
+        puckAcceleration = (puckBody.velocity - puckLastFrameVel) / Time.deltaTime;
+        puckLastFrameVel = puckBody.velocity;
+    }
+
+    private void ValidatePosition() {
+        Vector2 xBounds = gameSettings.playAreaXBounds;
+        Vector2 yBounds = gameSettings.playAreaYBounds;
+        Vector2 puckPos = transform.position;
+        if (puckPos.x < xBounds.x || puckPos.x > xBounds.y || puckPos.y < yBounds.x || puckPos.y > yBounds.y) {
+            Debug.Log($"Puck went out of bounds. XBounds={xBounds}, YBounds={yBounds}, PuckPos={puckPos}");
+            KillPuckEvent killPuckEvent = new KillPuckEvent() {
+                causeOfDeath = CauseOfDeath.OUT_OF_BOUNDS,
+                cashPenalty = gameSettings.outOfBoundsPenalty
+            };
+            EventManager.Instance.NotifyListeners(killPuckEvent);
+        }
+    }
+
+    private void HandleGamePaused() {
+
+    }
+
+    public Vector2 GetPuckAcceleration() {
+        return puckAcceleration;
     }
 
     private Vector2 GetMousePosition() {

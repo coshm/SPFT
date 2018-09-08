@@ -1,17 +1,22 @@
 ﻿using System;
+using System.Collections.Generic;
 
-public interface IPowerUp {
+namespace SPFT.PowerUpSystem.PowerUps {
 
-    Guid Id { get; }
+    public interface IPowerUp {
 
-    bool IsActive { get; }
+        void Initialize(params PowerUpArg[] args);
 
-    void Activate();
+        Guid Id { get; }
 
-    void Deactivate();
+        bool IsActive { get; }
 
-    bool IsBlockingPowerUpActivation(IPowerUp pwrUp);
+        void Activate();
 
-    bool OnPowerUpTrigger(IPowerUpTrigger pwrUpTrigger);
+        void Deactivate();
+
+        bool IsBlocked(List<IPowerUp> activePowerUps);
+
+    }
 
 }
