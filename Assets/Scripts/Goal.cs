@@ -1,14 +1,14 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
 using System;
-using System.Collections;
 using SPFT.EventSystem;
 using SPFT.EventSystem.Events;
 
 public class Goal : MonoBehaviour {
+    
+    public int Score { get; private set; }
+    public int Index { get; private set; }
 
-    // public so it can be set in editor
-    public int score;
+    private int? originalScore;
 
     public GameObject leftWall;
     public GameObject rightWall;
@@ -25,7 +25,7 @@ public class Goal : MonoBehaviour {
         if (goalText == null) {
             throw new InvalidOperationException("Goal's child object must have a TextMesh component.");
         }
-        goalText.text = score.ToString();
+        goalText.text = Score.ToString();
     }
     
     void Start() {
@@ -40,15 +40,27 @@ public class Goal : MonoBehaviour {
         if (coll.gameObject.tag == "Puck") {
             // Puck has scored in this goal
             PuckScoreEvent puckScoreEvent = new PuckScoreEvent() {
-                cashPrize = score
+                cashPrize = Score
             };
             EventManager.Instance.NotifyListeners(puckScoreEvent);
         }
     }
-    
+
     public void ChangeScore(int newScore) {
-        score = newScore;
-        goalText.text = newScore.ToString();
+        originalScore = Score;
+        Score = newScore;
+    }
+
+    public void ResetScore() {
+        if (originalScore != null) {
+            Score = originalScore.Value;
+            originalScore = null;
+        }
+    }
+
+    public void MoveToIndex(int newIndex, Vector2 newPos) {
+        Index = newIndex;
+        transform.localPosition = newPos;
     }
 
 }

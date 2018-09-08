@@ -38,6 +38,7 @@ public class GameSettings : MonoBehaviour {
     public int outOfBoundsPenalty = 50;
     public int puckCost = 100;
     public int powerUpCost = 100;
+    public int maxStoredPowerUps = 5;
 
     public int maxPowerUpCapacity = 3;
 
@@ -47,5 +48,6 @@ public class GameSettings : MonoBehaviour {
     public float puckVelocityMod = 2f;
     public int maxPegBreaks = 2;
     public float stutterDuration = 0.1f; 
-    public float pegRespawnDelay = 1f; 
+    public float pegRespawnDelay = 1f;
+    public int maxExplosionCount = 3;
 }

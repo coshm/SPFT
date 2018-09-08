@@ -1,5 +1,5 @@
-﻿using System.Collections;
-using UnityEngine;
+﻿using UnityEngine;
+using System.Collections;
 
 [RequireComponent(typeof(Collider2D), typeof(SpriteRenderer))]
 public class Peg : MonoBehaviour {
@@ -20,14 +20,12 @@ public class Peg : MonoBehaviour {
     }
 	
 	void Update () {
-		
-	}
 
-    public void Explode(Vector2 impactDir, float timeToRespawn) {
+    }
+
+    public void Destroy(float timeToRespawn) {
         pegColl.enabled = false;
         pegSprite.enabled = false;
-
-        // Set off particle system
 
         StartCoroutine(Respawn(timeToRespawn));
     }

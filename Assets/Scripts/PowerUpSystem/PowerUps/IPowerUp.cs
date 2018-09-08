@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace SPFT.PowerUpSystem.PowerUps {
 
@@ -8,6 +9,8 @@ namespace SPFT.PowerUpSystem.PowerUps {
         void Initialize(params PowerUpArg[] args);
 
         Guid Id { get; }
+
+        Sprite Icon { get; }
 
         bool IsActive { get; }
 
