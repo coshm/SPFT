@@ -1,43 +1,14 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
+﻿using UnityEngine;
 
 namespace SPFT.PowerUpSystem.PowerUps {
 
-    public class RearrangeStoredPowerUps : MonoBehaviour, IPowerUp {
-
-        private const int INIT_ARG_COUNT = 4;
-
-        private const string ID = "id";
-        private const string ICON = "icon";
-
-        public Guid Id { get; private set; }
-        public Sprite Icon { get; private set; }
-        public bool IsActive { get; private set; }
+    public class RearrangeStoredPowerUps : PowerUpBase {
 
         private PowerUpManager pwrUpMgr;
         private int[] reorderedIconIndices;
 
-        public void Initialize(params PowerUpArg[] args) {
-            if (args.Length != INIT_ARG_COUNT) {
-                throw new InvalidOperationException($"Expected {INIT_ARG_COUNT} init args but actually got {args.Length}.");
-            }
-
-            IsActive = false;
-            foreach (PowerUpArg arg in args) {
-                switch (arg.name) {
-                    case ID:
-                        Id = Guid.Parse(arg.value);
-                        break;
-                    case ICON:
-                        Icon = Resources.Load<Sprite>(arg.value);
-                        break;
-                    default:
-                        throw new InvalidOperationException($"No parameter found for {arg.name}");
-                }
-            }
+        public override void Initialize(params PowerUpArg[] args) {
+            InitializeBase(args);
         }
         
         // Use this for initialization
@@ -61,7 +32,7 @@ namespace SPFT.PowerUpSystem.PowerUps {
             }
         }
 
-        public void Activate() {
+        public override void Activate() {
             IsActive = true;
             if (pwrUpMgr.StoredPowerUpCount == 0) {
                 Deactivate();
@@ -70,18 +41,10 @@ namespace SPFT.PowerUpSystem.PowerUps {
             }
         }
 
-        public void Deactivate() {
+        public override void Deactivate() {
             IsActive = false;
             Destroy(this);
         }
 
-        public bool IsBlocked(List<IPowerUp> activePowerUps) {
-            foreach (IPowerUp powerUp in activePowerUps) {
-                if (powerUp.GetType() == this.GetType()) {
-                    return true;
-                }
-            }
-            return false;
-        }
     }
 }

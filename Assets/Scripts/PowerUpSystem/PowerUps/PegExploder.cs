@@ -1,47 +1,33 @@
 ﻿using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace SPFT.PowerUpSystem.PowerUps {
 
-    public class PegExploder : MonoBehaviour, IPowerUp {
+    public class PegExploder : PowerUpBase {
 
         private const int INIT_ARG_COUNT = 5;
 
         // Initialization Arg Names
         #region
-        private const string ID = "id";
-        private const string ICON = "icon";
         private const string PEG_RESPAWN_DELAY = "pegRespawnDelay";
         private const string MAX_EXPLOSION_COUNT = "maxExplosionCount";
         private const string EXPLOSION_EFFECT = "explosionEffect";
         #endregion
 
-        public Guid Id { get; private set; }
-        public Sprite Icon { get; private set; }
-        public bool IsActive { get; private set; }
         public float pegRespawnDelay;
         public int maxExplosionCount;
         public AnimationClip explosionEffect; // Change to some Animation object?
 
-        private GameSettings gameSettings;
-
         private int pegsExplodedCount = 0;
 
-        public void Initialize(params PowerUpArg[] args) {
+        public override void Initialize(params PowerUpArg[] args) {
+            InitializeBase(args);
             if (args.Length != INIT_ARG_COUNT) {
                 throw new InvalidOperationException($"Expected {INIT_ARG_COUNT} init args but actually got {args.Length}.");
             }
-
-            IsActive = false;
+            
             foreach (PowerUpArg arg in args) {
                 switch (arg.name) {
-                    case ID:
-                        Id = Guid.Parse(arg.value);
-                        break;
-                    case ICON:
-                        Icon = Resources.Load<Sprite>(arg.value);
-                        break;
                     case PEG_RESPAWN_DELAY:
                         pegRespawnDelay = Utilities.ConvertStringOrDefault(arg.value, gameSettings.pegRespawnDelay);
                         break;
@@ -55,10 +41,6 @@ namespace SPFT.PowerUpSystem.PowerUps {
                         throw new InvalidOperationException($"No parameter found for {arg.name}");
                 }
             }
-        }
-
-        void Awake() {
-            gameSettings = GameSettings.Instance;
         }
         
         void Update() {
@@ -79,22 +61,14 @@ namespace SPFT.PowerUpSystem.PowerUps {
             }
         }
 
-        public void Activate() {
+        public override void Activate() {
             IsActive = true;
         }
 
-        public void Deactivate() {
+        public override void Deactivate() {
             IsActive = false;
             Destroy(this);
         }
-
-        public bool IsBlocked(List<IPowerUp> activePowerUps) {
-            foreach (IPowerUp powerUp in activePowerUps) {
-                if (powerUp.GetType() == this.GetType()) {
-                    return true;
-                }
-            }
-            return false;
-        }
+        
     }
 }

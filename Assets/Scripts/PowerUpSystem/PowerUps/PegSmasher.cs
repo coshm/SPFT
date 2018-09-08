@@ -3,19 +3,16 @@ using System.Collections;
 using System;
 using SPFT.EventSystem;
 using SPFT.EventSystem.Events;
-using System.Collections.Generic;
 
 
 namespace SPFT.PowerUpSystem.PowerUps {
 
-    public class PegSmasher : MonoBehaviour, IPowerUp {
+    public class PegSmasher : PowerUpBase {
 
         private const int INIT_ARG_COUNT = 8;
 
         // Initialization Arg Names
         #region
-        private const string ID = "id";
-        private const string ICON = "icon";
         private const string PUCK_VELOCITY_MOD = "puckVelocityMod";
         private const string MAX_PEG_BREAKS = "maxPegBreaks";
         private const string STUTTER_LENGTH = "stutterDuration";
@@ -25,9 +22,6 @@ namespace SPFT.PowerUpSystem.PowerUps {
 
         // Fields that should be set during Initialization.
         #region
-        public Guid Id { get; private set; }
-        public Sprite Icon { get; private set; }
-        public bool IsActive { get; private set; }
         public float puckVelocityMod;
         public int maxPegBreaks;
         public float stutterDuration;
@@ -35,25 +29,17 @@ namespace SPFT.PowerUpSystem.PowerUps {
         public AnimationClip pegBreakClip;
         #endregion
 
-        private GameSettings gameSettings;
-
         private Vector2 originalPuckVel;
         private int pegBreakCount;
 
-        public void Initialize(params PowerUpArg[] args) {
+        public override void Initialize(params PowerUpArg[] args) {
+            InitializeBase(args);
             if (args.Length != INIT_ARG_COUNT) {
                 throw new InvalidOperationException($"Expected {INIT_ARG_COUNT} init args but actually got {args.Length}.");
             }
-
-            IsActive = false;
+            
             foreach (PowerUpArg arg in args) {
                 switch (arg.name) {
-                    case ID:
-                        Id = Guid.Parse(arg.value);
-                        break;
-                    case ICON:
-                        Icon = Resources.Load<Sprite>(arg.value);
-                        break;
                     case PUCK_VELOCITY_MOD:
                         puckVelocityMod = Utilities.ConvertStringOrDefault(arg.value, gameSettings.puckVelocityMod);
                         break;
@@ -74,16 +60,12 @@ namespace SPFT.PowerUpSystem.PowerUps {
                 }
             }
         }
-
-        void Awake() {
-            gameSettings = GameSettings.Instance;
-        }
-
+        
         void Start() {
             EventManager.Instance.RegisterListener<PuckPegCollisionEvent>(OnPuckPegCollision);
         }
 
-        public void Activate() {
+        public override void Activate() {
             Debug.Log("Activating PegSmasher PowerUp.");
 
             IsActive = true;
@@ -96,14 +78,10 @@ namespace SPFT.PowerUpSystem.PowerUps {
             StartCoroutine(StutterPuckMovement(puck));
         }
 
-        public void Deactivate() {
+        public override void Deactivate() {
             Debug.Log("Deactivating PegSmasher PowerUp.");
             IsActive = false;
             Destroy(this);
-        }
-
-        public bool IsBlocked(List<IPowerUp> activePwrUps) {
-            return false;
         }
 
         public void OnPuckPegCollision(PuckPegCollisionEvent puckPegCollisionEvent) {
@@ -187,7 +165,6 @@ namespace SPFT.PowerUpSystem.PowerUps {
             puck.bodyType = RigidbodyType2D.Dynamic;
             puck.WakeUp();
         }
-
 
     }
 }
