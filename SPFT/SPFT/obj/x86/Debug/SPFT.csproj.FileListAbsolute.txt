@@ -1,3 +1,0 @@
-/workplace/SPFT/spft-proj/SPFT/SPFT/obj/x86/Debug/SPFT.csprojResolveAssemblyReference.cache
-/workplace/SPFT/spft-proj/SPFT/SPFT/obj/x86/Debug/SPFT.csproj.CoreCompileInputs.cache
-/workplace/SPFT/spft-proj/SPFT/SPFT/obj/x86/Debug/SPFT.csprojAssemblyReference.cache
