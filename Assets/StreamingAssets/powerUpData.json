@@ -9,6 +9,11 @@
           "value": "a045f6e3-5391-4b25-a816-e5a8891395a6"
         },
         {
+          "name": "icon",
+          "type": "STRING",
+          "value": "Sprites/SPFT_powerUpIcons,1"
+        },
+        {
           "name": "puckBounceMod",
           "type": "FLOAT",
           "value": "1"
@@ -29,6 +34,11 @@
           "value": "2cfa8edb-f2fd-41ae-834f-fd7c4405680b"
         },
         {
+          "name": "icon",
+          "type": "STRING",
+          "value": "Sprites/SPFT_powerUpIcons,2"
+        },
+        {
           "name": "puckVelocityMod",
           "type": "FLOAT",
           "value": "1.05"
@@ -47,6 +57,66 @@
           "name": "pegRespawnDelay",
           "type": "FLOAT",
           "value": "1"
+        }
+      ]
+    },
+    {
+      "className": "SPFT.PowerUpSystem.PowerUps.PegExploder",
+      "initArgs": [
+        {
+          "name": "id",
+          "type": "GUID",
+          "value": "00a68756-b0f3-4a9d-9fed-36b2343f7fe5"
+        },
+        {
+          "name": "icon",
+          "type": "STRING",
+          "value": "Sprites/SPFT_powerUpIcons,3"
+        },
+        {
+          "name": "pegRespawnDelay",
+          "type": "FLOAT",
+          "value": "2.0"
+        },
+        {
+          "name": "maxExplosionCount",
+          "type": "INT",
+          "value": "3"
+        },
+        {
+          "name": "explosionEffect",
+          "type": "STRING",
+          "value": "Assets/Animations/PuckExploding.idk"
+        }
+      ]
+    },
+    {
+      "className": "SPFT.PowerUpSystem.PowerUps.RearrangeStoredPowerUps",
+      "initArgs": [
+        {
+          "name": "id",
+          "type": "GUID",
+          "value": "ce4fc4b6-86aa-4bcd-a52a-c38839f44ce2"
+        },
+        {
+          "name": "icon",
+          "type": "STRING",
+          "value": "Sprites/SPFT_powerUpIcons,0"
+        }
+      ]
+    },
+    {
+      "className": "SPFT.PowerUpSystem.PowerUps.RearrangeGoals",
+      "initArgs": [
+        {
+          "name": "id",
+          "type": "GUID",
+          "value": "b29f0d4a-3c2c-48d7-80b0-009583637dbd"
+        },
+        {
+          "name": "icon",
+          "type": "STRING",
+          "value": "Sprites/SPFT_powerUpIcons,4"
         }
       ]
     }

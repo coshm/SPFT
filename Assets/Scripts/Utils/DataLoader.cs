@@ -20,10 +20,8 @@ public class DataLoader : MonoBehaviour {
         }
     }
 
-    public string AssemblyDirectory
-    {
-        get
-        {
+    public string AssemblyDirectory {
+        get {
             string codeBase = Assembly.GetExecutingAssembly().CodeBase;
             Debug.Log($"Assembly Name={codeBase}");
             UriBuilder uri = new UriBuilder(codeBase);

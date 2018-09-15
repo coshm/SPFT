@@ -6,11 +6,9 @@ namespace SPFT.PowerUpSystem.PowerUps {
 
     public abstract class PowerUpBase : MonoBehaviour, IPowerUp {
 
-        private const int BASE_INIT_ARG_COUNT = 2;
-
         // Initialization Arg Names
-        private const string ID = "id";
-        private const string ICON = "icon";
+        protected const string ID = "id";
+        protected const string ICON = "icon";
         
         public Guid Id { get; protected set; }
         public Sprite Icon { get; protected set; }
@@ -18,15 +16,8 @@ namespace SPFT.PowerUpSystem.PowerUps {
 
         protected GameSettings gameSettings;
 
-        void Awake() {
-            gameSettings = GameSettings.Instance;
-        }
-
         public void InitializeBase(params PowerUpArg[] args) {
-            if (args.Length < BASE_INIT_ARG_COUNT) {
-                throw new InvalidOperationException($"Expected at least {BASE_INIT_ARG_COUNT} init args but actually got {args.Length}.");
-            }
-
+            gameSettings = GameSettings.Instance;
             IsActive = false;
             foreach (PowerUpArg arg in args) {
                 switch (arg.name) {
@@ -34,14 +25,16 @@ namespace SPFT.PowerUpSystem.PowerUps {
                         Id = Guid.Parse(arg.value);
                         break;
                     case ICON:
-                        Icon = Resources.Load<Sprite>(arg.value);
+                        string[] spriteArgs = arg.value.Split(',');
+                        Sprite[] powerUpIcons = Resources.LoadAll<Sprite>(spriteArgs[0]);
+                        Icon = powerUpIcons[int.Parse(spriteArgs[1])];
                         break;
                     default:
                         break;
                 }
 
-                if (Id == null || Icon == null) {
-                    throw new InvalidOperationException("Failed to initialize ID and/or ICON.");
+                if (Id != null && Icon != null) {
+                    return;
                 }
             }
         }

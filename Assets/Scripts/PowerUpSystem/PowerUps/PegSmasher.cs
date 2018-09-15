@@ -9,7 +9,7 @@ namespace SPFT.PowerUpSystem.PowerUps {
 
     public class PegSmasher : PowerUpBase {
 
-        private const int INIT_ARG_COUNT = 8;
+        private const int INIT_ARG_COUNT = 6;
 
         // Initialization Arg Names
         #region
@@ -33,13 +33,18 @@ namespace SPFT.PowerUpSystem.PowerUps {
         private int pegBreakCount;
 
         public override void Initialize(params PowerUpArg[] args) {
-            InitializeBase(args);
+            Debug.Log($"Initializing {GetType()} with args={args}");
+
             if (args.Length != INIT_ARG_COUNT) {
                 throw new InvalidOperationException($"Expected {INIT_ARG_COUNT} init args but actually got {args.Length}.");
             }
             
             foreach (PowerUpArg arg in args) {
                 switch (arg.name) {
+                    case ID:
+                    case ICON:
+                        InitializeBase(arg);
+                        break;
                     case PUCK_VELOCITY_MOD:
                         puckVelocityMod = Utilities.ConvertStringOrDefault(arg.value, gameSettings.puckVelocityMod);
                         break;

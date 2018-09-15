@@ -6,6 +6,11 @@ TagManager:
   tags:
   - Puck
   - Peg
+  - StoredPowerUpIcon_0
+  - StoredPowerUpIcon_1
+  - StoredPowerUpIcon_2
+  - StoredPowerUpIcon_3
+  - StoredPowerUpIcon_4
   layers:
   - Default
   - TransparentFX

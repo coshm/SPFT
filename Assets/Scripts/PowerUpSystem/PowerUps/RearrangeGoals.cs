@@ -1,15 +1,34 @@
 ﻿using System.Collections.Generic;
+using System;
+using UnityEngine;
 using Random = UnityEngine.Random;
 
 namespace SPFT.PowerUpSystem.PowerUps {
 
     public class RearrangeGoals : PowerUpBase {
 
+        private const int INIT_ARG_COUNT = 2;
+
         private GoalManager goalMgr;
         private int[] originalOrder;
 
         public override void Initialize(params PowerUpArg[] args) {
-            InitializeBase(args);
+            Debug.Log($"Initializing {GetType()} with args={args}");
+
+            if (args.Length != INIT_ARG_COUNT) {
+                throw new InvalidOperationException($"Expected {INIT_ARG_COUNT} init args but actually got {args.Length}.");
+            }
+
+            foreach (PowerUpArg arg in args) {
+                switch (arg.name) {
+                    case ID:
+                    case ICON:
+                        InitializeBase(arg);
+                        break;
+                    default:
+                        throw new InvalidOperationException($"No parameter found for {arg.name}");
+                }
+            }
         }
 
         void Awake() {

@@ -21,13 +21,18 @@ namespace SPFT.PowerUpSystem.PowerUps {
         private int pegsExplodedCount = 0;
 
         public override void Initialize(params PowerUpArg[] args) {
-            InitializeBase(args);
+            Debug.Log($"Initializing {GetType()} with args={args}");
+
             if (args.Length != INIT_ARG_COUNT) {
                 throw new InvalidOperationException($"Expected {INIT_ARG_COUNT} init args but actually got {args.Length}.");
             }
             
             foreach (PowerUpArg arg in args) {
                 switch (arg.name) {
+                    case ID:
+                    case ICON:
+                        InitializeBase(arg);
+                        break;
                     case PEG_RESPAWN_DELAY:
                         pegRespawnDelay = Utilities.ConvertStringOrDefault(arg.value, gameSettings.pegRespawnDelay);
                         break;

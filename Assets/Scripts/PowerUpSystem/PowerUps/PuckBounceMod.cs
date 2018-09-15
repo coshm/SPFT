@@ -5,7 +5,7 @@ namespace SPFT.PowerUpSystem.PowerUps {
 
     public class PuckBounceMod : PowerUpBase {
 
-        private const int INIT_ARG_COUNT = 3;
+        private const int INIT_ARG_COUNT = 4;
 
         // Initialization Arg Names
         private const string PUCK_BOUNCE_MOD = "puckBounceMod";
@@ -21,6 +21,7 @@ namespace SPFT.PowerUpSystem.PowerUps {
         private float originalPuckBounce;
 
         public override void Initialize(params PowerUpArg[] args) {
+            Debug.Log($"Initializing {GetType()} with args={args}");
             InitializeBase(args);
             if (args.Length != INIT_ARG_COUNT) {
                 throw new InvalidOperationException($"Expected {INIT_ARG_COUNT} init args but actually got {args.Length}.");
@@ -28,6 +29,9 @@ namespace SPFT.PowerUpSystem.PowerUps {
             
             foreach (PowerUpArg arg in args) {
                 switch (arg.name) {
+                    case ID:
+                    case ICON:
+                        break;
                     case PUCK_BOUNCE_MOD:
                         puckBounceMod = Utilities.ConvertStringOrDefault(arg.value, gameSettings.puckBounceMod);
                         break;

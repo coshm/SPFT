@@ -5,8 +5,19 @@ using SPFT.EventSystem.Events;
 
 public class Goal : MonoBehaviour {
     
-    public int Score { get; private set; }
-    public int Index { get; private set; }
+    [SerializeField]
+    private int _score;
+    public int Score {
+        get { return _score; }
+        set { _score = value; }
+    }
+
+    [SerializeField]
+    private int _index;
+    public int Index {
+        get { return _index; }
+        set { _index = value; }
+    }
 
     private int? originalScore;
 

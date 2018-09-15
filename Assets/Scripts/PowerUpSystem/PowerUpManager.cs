@@ -7,7 +7,6 @@ using SPFT.EventSystem;
 using SPFT.EventSystem.Events;
 using SPFT.PowerUpSystem.PowerUps;
 
-
 namespace SPFT.PowerUpSystem {
 
     public class PowerUpManager : MonoBehaviour {
@@ -56,6 +55,8 @@ namespace SPFT.PowerUpSystem {
         }
 
         void Awake() {
+            gameSettings = GameSettings.Instance;
+
             storedPowerUpIconSlots = new Dictionary<int, SpriteRenderer>();
             IList<SpriteRenderer> iconSlots = GetComponentsInChildren<SpriteRenderer>();
             if (iconSlots == null || iconSlots.Count != gameSettings.maxStoredPowerUps) {
@@ -73,7 +74,6 @@ namespace SPFT.PowerUpSystem {
         }
 
         void Start() {
-            gameSettings = GameSettings.Instance;
             EventManager.Instance.RegisterListener<PowerUpAcquiredEvent>(OnPowerUpAcquired);
         }
 
@@ -138,6 +138,7 @@ namespace SPFT.PowerUpSystem {
         }
 
         public int GetIndexFromIconTag(GameObject iconObj) {
+            Debug.Log($"Getting Index from IconTag={iconObj.tag}");
             return int.Parse(iconObj.tag.Split(ICON_TAG_DELIMETER)[1]);
         }
 
