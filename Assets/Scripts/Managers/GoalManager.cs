@@ -53,4 +53,16 @@ public class GoalManager : MonoBehaviour {
             goal.MoveToIndex(newOrder[i], newGoalPos);
         }
     }
+
+    public void MultipleGoalScores(float multiplier) {
+        foreach(Goal goal in allGoals) {
+            goal.ChangeScore(goal.Scrore * multiplier);
+        }
+    }
+
+    public void ResetGoalScores() {
+        foreach (Goal goal in allGoals) {
+            goal.ResetScore();
+        }
+    }
 }

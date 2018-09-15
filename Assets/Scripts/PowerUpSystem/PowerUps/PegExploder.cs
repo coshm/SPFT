@@ -43,7 +43,8 @@ namespace SPFT.PowerUpSystem.PowerUps {
                         explosionEffect = Resources.Load<AnimationClip>(arg.value); // TODO: figure out how to load/play animation clips
                         break;
                     default:
-                        throw new InvalidOperationException($"No parameter found for {arg.name}");
+                        Debug.LogWarning($"No parameter found for {arg.name}");
+                        break;
                 }
             }
         }
@@ -67,13 +68,16 @@ namespace SPFT.PowerUpSystem.PowerUps {
         }
 
         public override void Activate() {
+            Debug.Log($"Activating {GetType()} PowerUp.");
             IsActive = true;
         }
 
         public override void Deactivate() {
+            Debug.Log($"Deactivating {GetType()} PowerUp.");
+
             IsActive = false;
-            Destroy(this);
+
+            EmitExpiredEventAndSelfDestruct(this, gameSettings.pwrUpPostDeactivationDelay);
         }
-        
     }
 }

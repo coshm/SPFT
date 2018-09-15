@@ -61,7 +61,8 @@ namespace SPFT.PowerUpSystem.PowerUps {
                         pegBreakClip = Resources.Load<AnimationClip>(arg.value); // TODO: figure out how to load/play animation clips
                         break;
                     default:
-                        throw new InvalidOperationException($"No parameter found for {arg.name}");
+                        Debug.LogWarning($"No parameter found for {arg.name}");
+                        break;
                 }
             }
         }
@@ -71,7 +72,7 @@ namespace SPFT.PowerUpSystem.PowerUps {
         }
 
         public override void Activate() {
-            Debug.Log("Activating PegSmasher PowerUp.");
+            Debug.Log($"Activating {GetType()} PowerUp.");
 
             IsActive = true;
 
@@ -84,9 +85,11 @@ namespace SPFT.PowerUpSystem.PowerUps {
         }
 
         public override void Deactivate() {
-            Debug.Log("Deactivating PegSmasher PowerUp.");
+            Debug.Log($"Deactivating {GetType()} PowerUp.");
+
             IsActive = false;
-            Destroy(this);
+
+            EmitExpiredEventAndSelfDestruct(this, gameSettings.pwrUpPostDeactivationDelay);
         }
 
         public void OnPuckPegCollision(PuckPegCollisionEvent puckPegCollisionEvent) {
@@ -128,7 +131,7 @@ namespace SPFT.PowerUpSystem.PowerUps {
             // TODO: Determine how to use pegBreakClip here
         }
 
-        private void DampenPuckMomentum(Peg peg, Puck puck) {
+        /*private void DampenPuckMomentum(Peg peg, Puck puck) {
             Debug.Log($"Attempting to Dampen Puck Momentum after {pegBreakCount} broken Pegs.");
 
             Rigidbody2D puckBody = puck.GetComponent<Rigidbody2D>();
@@ -150,10 +153,38 @@ namespace SPFT.PowerUpSystem.PowerUps {
             Debug.Log($"New Puck Velocity={newPuckVelocity}");
 
             puckBody.velocity = newPuckVelocity;
+        }*/
+
+
+        private void DampenPuckMomentum(Peg peg, Puck puck) {
+            Debug.Log($"Attempting to Dampen Puck Momentum after {pegBreakCount} broken Pegs.");
+
+            Rigidbody2D puckBody = puck.GetComponent<Rigidbody2D>();
+            Vector2 v = puckBody.velocity;
+            Debug.Log($"Current Velocity of the Puck is: {v}");
+
+            Vector2 n = puck.transform.position - peg.transform.position;
+            n.Normalize();
+            Debug.Log($"The normalized collision vector is {n}");
+
+            float scalarProjVOnN = Vector2.Dot(n, v) / n.magnitude;
+            Debug.Log($"The scalar projection of V onto N is {scalarProjVOnN}");
+
+            Vector2 pegsForceOnPuck = scalarProjVOnN * n;
+            Debug.Log($"The full force on the Puck from the Peg is: {pegsForceOnPuck}");
+
+            float pegBreakCountMod = (float) Math.Pow((double)pegBreakCount / maxPegBreaks, 2.0);
+            Debug.Log($"Based on pegBreakCount:{pegBreakCount}, multiplying our force by {pegBreakCountMod}");
+
+            Vector2 puckDampeningForce = pegBreakCountMod * pegsForceOnPuck;
+            Debug.Log($"Final force acting on the Puck: {puckDampeningForce}");
+
+            puckBody.velocity = v + puckDampeningForce;
+            Debug.Log($"Puck's new velocity is: {puckBody.velocity}");
         }
 
         private IEnumerator StutterPuckMovement(Rigidbody2D puck) {
-            // Save vel and angular vel before turning off physics
+            // Cache vel and angular vel before turning off physics
             Vector2 velocity = puck.velocity;
             float angularVelocity = puck.angularVelocity;
 

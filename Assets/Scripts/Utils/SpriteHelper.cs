@@ -3,38 +3,22 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SpriteHelper
-{
+public class SpriteHelper {
 
-    private static Sprite[] circleSprites = Resources.LoadAll<Sprite>("Sprites/Circles");
+    public const string POWER_UP_ICONS = "SPFT_powerUpIcons";
 
-    private static Dictionary<Color, String> circleSpriteNamesByColor = new Dictionary<Color, String>()
-    {
-        //[Color.WHITE] = "WhiteCircle",
-        //[Color.BLUE] = "BlueCircle",
-        //[Color.GREEN] = "GreenCircle",
-        //[Color.PURPLE] = "PurpleCircle",
-        //[Color.RED] = "RedCircle",
-        //[Color.YELLOW] = "YellowCircle"
-    };
+    private static Dictionary<string, Sprite[]> spriteSheetsByName;
 
-    /*public static Sprite GetCircleForColor(Color color)
-    {
-        Sprite circle = circleSprites.Single(s => s.name == circleSpriteNamesByColor[color]);
-        if (circle == null)
-        {
-            throw new InvalidOperationException($"Could not find a Sprite for color, {color.ToString()}");
+    public static Sprite[] GetSpriteSheet(string sheetName) {
+        if (!spriteSheetsByName.ContainsKey(sheetName)) {
+            spriteSheetsByName[sheetName] = Resources.LoadAll<Sprite>($"Sprites/{sheetName}");
         }
-        return circle;
+        return spriteSheetsByName[sheetName];
     }
 
-    public static Sprite GetPlayerIndicatorSprite(PlayerController.Player player)
-    {
-        Sprite playerIndicator = circleSprites.Single(s => s.name == player.ToString());
-        if (playerIndicator == null)
-        {
-            throw new InvalidOperationException($"Could not find a Sprite for color, {player.ToString()}");
-        }
-        return playerIndicator;
-    }*/
+    public static SpriteHelper GetSprite(string sheetName, int spriteIdx) {
+        Sprite[] spriteSheet = GetSpriteSheet(sheetName);
+        return spriteSheet[spriteIdx];
+    }
+
 }

@@ -10,7 +10,7 @@ using SPFT.PowerUpSystem.PowerUps;
 namespace SPFT.PowerUpSystem {
 
     public class PowerUpManager : MonoBehaviour {
-        
+
         public const string ICON_TAG_PREFIX = "StoredPowerUpIcon";
         public const char ICON_TAG_DELIMETER = '_';
 
@@ -30,15 +30,13 @@ namespace SPFT.PowerUpSystem {
         }
 
         public Puck puck;
-        public Text timerText;
-        public int slotMachineCost;
-
-        public PowerUpAcquiredEvent pwrUpAcquiredEvent;
+        public PowerUpTimer pwrUpTimer;
 
         [SerializeField]
         private Queue<IPowerUp> storedPowerUps;
         public int StoredPowerUpCount { get { return storedPowerUps.Count; } }
         public Dictionary<int, SpriteRenderer> storedPowerUpIconSlots;
+        public Sprite emptyPowerUpIconSlot;
 
         [SerializeField]
         public List<IPowerUp> activePowerUps;
@@ -48,23 +46,29 @@ namespace SPFT.PowerUpSystem {
         private GameSettings gameSettings;
 
         void Init() {
-            if (puck == null) {
-                throw new InvalidOperationException("Puck cannot be null.");
+            if (puck == null || pwrUpTimer == null) {
+                throw new InvalidOperationException("Both Puck and PowerUpTimer are required.");
             }
-            UpdateTimerDisplay(0f);
         }
 
         void Awake() {
             gameSettings = GameSettings.Instance;
 
+<<<<<<< Updated upstream
+=======
+            // Get the SpriteRenderers from all child GOs, which are all the icon slots for store powerUps.
+>>>>>>> Stashed changes
             storedPowerUpIconSlots = new Dictionary<int, SpriteRenderer>();
             IList<SpriteRenderer> iconSlots = GetComponentsInChildren<SpriteRenderer>();
             if (iconSlots == null || iconSlots.Count != gameSettings.maxStoredPowerUps) {
-                throw new InvalidOperationException($"Only found {iconSlots.Count} icon slots, not {gameSettings.maxStoredPowerUps}");
+                throw new InvalidOperationException($"Only found {iconSlots.Count} icon slots, not the expected {gameSettings.maxStoredPowerUps}");
             }
 
+            // Initialize each iconSlot with by setting the empty iconSlot sprite and getting their indices.
+            emptyPowerUpIconSlot = SpriteHelper.GetSprite(SpriteHelper.POWER_UP_ICONS, 6);
             foreach (SpriteRenderer iconSlot in iconSlots) {
                 int idx = GetIndexFromIconTag(iconSlot.gameObject);
+                iconSlot.sprite = emptyPowerUpIconSlot;
                 storedPowerUpIconSlots[idx] = iconSlot;
             }
 
@@ -74,8 +78,15 @@ namespace SPFT.PowerUpSystem {
         }
 
         void Start() {
+<<<<<<< Updated upstream
             EventManager.Instance.RegisterListener<PowerUpAcquiredEvent>(OnPowerUpAcquired);
+=======
+            EventManager.Instance.RegisterListener<PowerUpAcquiredEvent>(OnPowerUpAcquisition);
+            EventManager.Instance.RegisterListener<PowerUpExpiredEvent>(OnPowerUpExpiration);
+>>>>>>> Stashed changes
         }
+
+        /* ~~~~~~~~~~~~~~~~~~~~ Manage PowerUp Lifecycle ~~~~~~~~~~~~~~~~~~~~ */
 
         void Update() {
             if (Input.GetButtonDown(gameSettings.activatePowerUp)) {
@@ -113,24 +124,6 @@ namespace SPFT.PowerUpSystem {
             EventManager.Instance.NotifyListeners(powerUpActivatedEvent);
         }
 
-        public void DeactivatePowerUp(IPowerUp powerUp) {
-            powerUp.Deactivate();
-            activePowerUps.Remove(powerUp);
-            expiredPowerUps.Add(powerUp);
-
-            // Notify all the listeners that the PowerUp has been Deactivated
-            PowerUpExpiredEvent powerUpExpiredEvent = new PowerUpExpiredEvent() {
-                powerUp = powerUp
-            };
-            EventManager.Instance.NotifyListeners(powerUpExpiredEvent);
-        }
-
-        public void UpdateTimerDisplay(float seconds) {
-            int min = (int) (seconds / 60f);
-            int sec = (int) (seconds % 60f);
-            timerText.text = $"{min}:{sec}";
-        }
-
         /* ~~~~~~~~~~~~~~~~~~~~ Stored PowerUp Icon Helpers ~~~~~~~~~~~~~~~~~~~~ */
 
         public bool IsAPowerUpIcon(GameObject obj) {
@@ -152,17 +145,20 @@ namespace SPFT.PowerUpSystem {
         }
 
         private void UpdateStoredPowerUpIcons() {
-            for (int i = 0; i < gameSettings.maxStoredPowerUps; i++) {
-                storedPowerUpIconSlots[i].sprite = storedPowerUps.ElementAt(i).Icon;
+            for (int i = 0; i < storedPowerUpIconSlots.Count; i++) {
+
                 if (i >= StoredPowerUpCount) {
+                    storedPowerUpIconSlots[i].sprite = storedPowerUps.ElementAt(i).Icon;
+                } else {
                     storedPowerUpIconSlots[i].sprite = null;
                 }
+
             }
         }
 
         /* ~~~~~~~~~~~~~~~~~~~~ Unity Event Handlers ~~~~~~~~~~~~~~~~~~~~ */
 
-        public void OnPowerUpAcquired(PowerUpAcquiredEvent powerUpAcquiredEvent) {
+        public void OnPowerUpAcquisition(PowerUpAcquiredEvent powerUpAcquiredEvent) {
             if (powerUpAcquiredEvent.activationType == PowerUpActivationType.IMMEDIATE) {
                 ActivatePowerUp(powerUpAcquiredEvent.powerUp);
             } else {
@@ -170,6 +166,11 @@ namespace SPFT.PowerUpSystem {
                 storedPowerUps.Enqueue(powerUpAcquiredEvent.powerUp);
                 UpdateStoredPowerUpIcons();
             }
+        }
+
+        public void OnPowerUpExpiration(PowerUpExpiredEvent powerUpExpiredEvent) {
+            activePowerUps.Remove(powerUp);
+            expiredPowerUps.Add(powerUp);
         }
     }
 }

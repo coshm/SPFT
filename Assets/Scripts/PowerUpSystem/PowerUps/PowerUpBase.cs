@@ -53,5 +53,19 @@ namespace SPFT.PowerUpSystem.PowerUps {
             }
             return false;
         }
+
+        protected void EmitExpiredEventAndSelfDestruct(IPowerUp powerUp, float delay) {
+            PowerUpExpiredEvent powerUpExpiredEvent = new PowerUpExpiredEvent() {
+                powerUp = powerUp
+            };
+            EventManager.Instance.NotifyListeners(powerUpExpiredEvent);
+
+            StartCoroutine(SelfDestructAfterDelay(delay));
+        }
+
+        protected IEnumerator SelfDestructAfterDelay(float delay) {
+            yield return new WaitForSeconds(delay);
+            Destroy(this);
+        }
     }
 }

@@ -36,15 +36,17 @@ namespace SPFT.PowerUpSystem.PowerUps {
         }
 
         public override void Activate() {
+            Debug.Log($"Activating {GetType()} PowerUp.");
             IsActive = true;
             originalOrder = goalMgr.GoalIndices;
             goalMgr.SetGoalOrder(RandomizeOrder(goalMgr.GoalCount));
         }
         
         public override void Deactivate() {
+            Debug.Log($"Deactivating {GetType()} PowerUp.");
             IsActive = false;
             goalMgr.SetGoalOrder(originalOrder);
-            Destroy(this);
+            EmitExpiredEventAndSelfDestruct(this, gameSettings.pwrUpPostDeactivationDelay);
         }
 
         private int[] RandomizeOrder(int count) {

@@ -41,6 +41,7 @@ public class GameSettings : MonoBehaviour {
     public int maxStoredPowerUps = 5;
 
     public int maxPowerUpCapacity = 3;
+    public float pwrUpPostDeactivationDelay = 5f;
 
     public float puckBounceMod = 1f;
     public float powerUpDuration = 30f;
@@ -50,4 +51,11 @@ public class GameSettings : MonoBehaviour {
     public float stutterDuration = 0.1f; 
     public float pegRespawnDelay = 1f;
     public int maxExplosionCount = 3;
+
+    public float teleportEnterYBound = 5f;
+    public Vector2 teleportExitXBounds = new Vector2(-20f, 20f);
+    public Vector2 teleportExitYBounds = new Vector2(20f, 10f);
+
+    public float scoreMultiplier = 1.5f;
+    public float scoreModDuration = 30f;
 }

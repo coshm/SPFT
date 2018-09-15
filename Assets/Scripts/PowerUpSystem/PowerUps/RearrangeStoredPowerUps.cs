@@ -51,6 +51,7 @@ namespace SPFT.PowerUpSystem.PowerUps {
         }
 
         public override void Activate() {
+            Debug.Log($"Activating {GetType()} PowerUp.");
             IsActive = true;
             if (pwrUpMgr.StoredPowerUpCount == 0) {
                 Deactivate();
@@ -60,9 +61,9 @@ namespace SPFT.PowerUpSystem.PowerUps {
         }
 
         public override void Deactivate() {
+            Debug.Log($"Deactivating {GetType()} PowerUp.");
             IsActive = false;
-            Destroy(this);
+            EmitExpiredEventAndSelfDestruct(this, gameSettings.pwrUpPostDeactivationDelay);
         }
-
     }
 }
