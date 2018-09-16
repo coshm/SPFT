@@ -26,13 +26,10 @@ public class StoreManager : MonoBehaviour {
     
     public bool IsBuyingPowerUp { get; private set; }
 
-    [SerializeField]
-    public IList<GameObject> powerUpMasterList;
-    public IDictionary<Guid, Sprite> powerUpIconsByGuid;
-
     private GameSettings gameSettings;
     private PlayerWallet wallet;
     private PowerUpManager powerUpMgr;
+    private SlotMachine pwrUpSlotMachine;
 
     void Init() {
         // what should go here?
@@ -46,17 +43,10 @@ public class StoreManager : MonoBehaviour {
         gameSettings = GameSettings.Instance;
         wallet = PlayerWallet.Instance;
         powerUpMgr = PowerUpManager.Instance;
+        pwrUpSlotMachine = SlotMachine.Instance;
     }
 
     void Start() {
-        powerUpMasterList = DataLoader.Instance.LoadPowerUpData();
-        if (powerUpMasterList == null || powerUpMasterList.Count == 0) {
-            throw new InvalidOperationException("There must be at least one PowerUp in allPowerUps.");
-        }
-
-        //if (powerUpIconsByGuid.Count != PowerUpManager.Instance.allPowerUpPrefabs.Count) {
-        //    throw new InvalidOperationException("There must be one Sprite for each PowerUp.");
-        //}
     }
 
     void Update() {
@@ -70,19 +60,20 @@ public class StoreManager : MonoBehaviour {
 
     private void BuyRandomPowerUp() {
         // kick off slot machine animation
+        GameObject selectedPowerUpPrefab = pwrUpSlotMachine.PullSlotMachine();
 
         // Select and instantiate a random PowerUp from the master list.
-        GameObject powerUpTemplate = powerUpMasterList[Random.Range(0, powerUpMasterList.Count)];
-        IPowerUp pwrUp = Instantiate(powerUpTemplate, Vector3.zero, Quaternion.identity).GetComponent<IPowerUp>();
+        //GameObject powerUpTemplate = powerUpMasterList[Random.Range(0, powerUpMasterList.Count)];
+        IPowerUp powerUp = Instantiate(selectedPowerUpPrefab, Vector3.zero, Quaternion.identity).GetComponent<IPowerUp>();
 
         // Charge the player for the cost of a PowerUp.
         wallet.ChargePlayer(gameSettings.powerUpCost);
 
-        Debug.Log($"Successfully bought the {pwrUp.GetType().ToString()} PowerUp Type.");
+        Debug.Log($"Successfully bought the {powerUp.GetType().ToString()} PowerUp Type.");
 
         // Notify listeners that a PowerUp has been acquired.
         PowerUpAcquiredEvent powerUpAcquiredEvent = new PowerUpAcquiredEvent() {
-            powerUp = pwrUp,
+            powerUp = powerUp,
             activationType = PowerUpActivationType.MANUAL
         };
         EventManager.Instance.NotifyListeners(powerUpAcquiredEvent);

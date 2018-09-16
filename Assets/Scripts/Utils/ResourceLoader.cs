@@ -1,11 +1,21 @@
 ﻿using UnityEngine;
+using System;
 using System.Collections;
+using SPFT.PowerUpSystem.PowerUps;
 
 public class ResourceLoader : MonoBehaviour
 {
     /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Sprite Helpers ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-    public const string POWER_UP_ICONS = "SPFT_powerUpIcons";
+    public static const string POWER_UP_ICONS = "SPFT_powerUpIcons";
+
+    public static const IDictionary<Type, int> POWER_UP_TO_SPRITE_SHEET_IDX = new Dictionary<Type, int> {
+        [typeof(PegExploder)] = 0,
+        [typeof(PegSmasher)] = 1,
+        [typeof(PuckBounceMod)] = 2,
+        [typeof(RearrangeGoals)] = 3,
+        [typeof(RearrangeStoredPowerUps)] = 4
+    }
 
     private static Dictionary<string, Sprite[]> spriteSheetsByName;
 
@@ -19,6 +29,16 @@ public class ResourceLoader : MonoBehaviour
     public static SpriteHelper GetSprite(string sheetName, int spriteIdx) {
         Sprite[] spriteSheet = GetSpriteSheet(sheetName);
         return spriteSheet[spriteIdx];
+    }
+
+    public static Sprite GetSpriteForPowerUp(Type powerUpType) {
+        Sprite[] powerUpSprites = GetSpriteSheet(POWER_UP_ICONS);
+        if (!POWER_UP_TO_SPRITE_SHEET_IDX.ContainsKey(powerUpType)) {
+            throw new ArgumentException($"Could not find SpriteSheet index for type {powerUpType}.");
+        }
+
+        int powerUpIdx = POWER_UP_TO_SPRITE_SHEET_IDX[powerUpType];
+        return powerUpSprites[powerUpIdx];
     }
 
     /* ~~~~~~~~~~~~~~~~~~~~ Handlers for all other Resources ~~~~~~~~~~~~~~~~~~~~ */

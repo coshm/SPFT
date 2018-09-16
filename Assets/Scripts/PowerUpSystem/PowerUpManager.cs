@@ -54,10 +54,7 @@ namespace SPFT.PowerUpSystem {
         void Awake() {
             gameSettings = GameSettings.Instance;
 
-<<<<<<< Updated upstream
-=======
             // Get the SpriteRenderers from all child GOs, which are all the icon slots for store powerUps.
->>>>>>> Stashed changes
             storedPowerUpIconSlots = new Dictionary<int, SpriteRenderer>();
             IList<SpriteRenderer> iconSlots = GetComponentsInChildren<SpriteRenderer>();
             if (iconSlots == null || iconSlots.Count != gameSettings.maxStoredPowerUps) {
@@ -78,12 +75,8 @@ namespace SPFT.PowerUpSystem {
         }
 
         void Start() {
-<<<<<<< Updated upstream
-            EventManager.Instance.RegisterListener<PowerUpAcquiredEvent>(OnPowerUpAcquired);
-=======
             EventManager.Instance.RegisterListener<PowerUpAcquiredEvent>(OnPowerUpAcquisition);
             EventManager.Instance.RegisterListener<PowerUpExpiredEvent>(OnPowerUpExpiration);
->>>>>>> Stashed changes
         }
 
         /* ~~~~~~~~~~~~~~~~~~~~ Manage PowerUp Lifecycle ~~~~~~~~~~~~~~~~~~~~ */

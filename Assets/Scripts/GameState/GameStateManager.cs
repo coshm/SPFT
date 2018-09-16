@@ -14,6 +14,13 @@ namespace SPFT.State {
         GAME_PAUSED
     }
 
+    public enum SlotMachineState {
+        AT_REST,
+        START_SPINNING,
+        SPINNING,
+        STOP_SPINNING
+    }
+
     public class GameStateManager : MonoBehaviour {
 
         private static GameStateManager gameStateMgr;
@@ -37,9 +44,12 @@ namespace SPFT.State {
 
         public MainGameState State { get; private set; }
         private MainGameState unpausedState;
+
+        public SlotMachineState SlotState { get; private set; }
         
         void Start() {
             State = MainGameState.PRE_LAUNCH;
+            SlotState = SlotMachineState.AT_REST;
 
             EventManager eventMgr = EventManager.Instance;
             eventMgr.RegisterListener<BuyPuckEvent>(OnBuyPuck);
@@ -51,10 +61,8 @@ namespace SPFT.State {
             eventMgr.RegisterListener<UnpauseGameEvent>(OnGameUnpause);
             eventMgr.RegisterListener<GameOverEvent>(OnGameOver);
         }
-        
-        void Update() {
 
-        }
+        /* ~~~~~~~~~~~~~~~~~~~~~~~~ Main Game State Handlers ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
         public void OnBuyPuck(BuyPuckEvent buyPuckEvent) {
             Debug.Log($"GameStateManager handling BuyPuckEvent. CurrentState={State}, Event={buyPuckEvent}");
@@ -116,6 +124,13 @@ namespace SPFT.State {
         public void OnGameOver(GameOverEvent gameOverEvent) {
             Debug.Log($"GameStateManager handling GameOverEvent. CurrentState={State}, Event={gameOverEvent}");
             Application.Quit();
+        }
+
+        /* ~~~~~~~~~~~~~~~~~~~~~~~~~~ Slot State Handlers ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+        public void SetSlotMachineState(SlotMachineState slotState) {
+            // TODO: Verify the state transition is valid
+            SlotState = slotState;
         }
     }
 }
