@@ -1,5 +1,7 @@
 ﻿using System;
 using UnityEngine;
+using SPFT.EventSystem;
+using SPFT.EventSystem.Events;
 
 namespace SPFT.PowerUpSystem.PowerUps {
 
@@ -15,7 +17,7 @@ namespace SPFT.PowerUpSystem.PowerUps {
         public float puckBounceMod;
         public float pwrUpDuration;
 
-        private SharedMaterial puckMaterial;
+        private PhysicsMaterial2D puckMaterial;
         private float originalPuckBounce;
 
         private PowerUpTimer powerUpTimer;
@@ -47,7 +49,7 @@ namespace SPFT.PowerUpSystem.PowerUps {
         }
 
         void Start() {
-            puckMaterial = PowerUpManager.Instance.puck.GetComponent<SharedMaterial>();
+            puckMaterial = PowerUpLifeCycleManager.Instance.puck.GetComponent<PhysicsMaterial2D>();
             EventManager.Instance.RegisterListener<PowerUpTimerExpiredEvent>(OnPowerUpTimerExpiration);
         }
 
@@ -58,7 +60,7 @@ namespace SPFT.PowerUpSystem.PowerUps {
             originalPuckBounce = puckMaterial.bounciness;
             puckMaterial.bounciness = puckBounceMod;
 
-            timerId = PowerUpManager.Instance.powerUpTimer.StartTimer(pwrUpDuration);
+            timerId = PowerUpTimer.Instance.StartTimer(pwrUpDuration);
         }
 
         public override void Deactivate() {

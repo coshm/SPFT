@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using SPFT.PowerUpSystem.PowerUps;
 
 namespace SPFT.PowerUpSystem {
@@ -10,7 +10,7 @@ namespace SPFT.PowerUpSystem {
         private DataLoader dataLoader;
         private ResourceLoader resourceLoader;
 
-        private IDictionary<Guid, IPowerUp> powerUpsByGuid;
+        private IDictionary<Guid, GameObject> powerUpsByGuid;
         private IDictionary<Guid, Sprite> powerUpIconsByGuid;
 
         void Awake() {
@@ -24,19 +24,20 @@ namespace SPFT.PowerUpSystem {
             IDictionary<Type, PowerUpData> powerUpDataByType = dataLoader.LoadPowerUpData();
             foreach (KeyValuePair<Type, PowerUpData> kvp in powerUpDataByType) {
                 // Instatiate PowerUp and initialize it with args loaded from Json
-                IPowerUp powerUp = new GameObject().AddComponent(kvp.Key) as IPowerUp;
+                GameObject powerUpPrefab = new GameObject();
+                IPowerUp powerUp = powerUpPrefab.AddComponent(kvp.Key) as IPowerUp;
                 powerUp.Initialize(kvp.Value.initArgs);
 
-                powerUpsByGuid[powerUp.Guid] = powerUp;
-                powerUpIconsByGuid[powerUp.Guid] = resourceLoader.GetSpriteForPowerUp(powerUp.GetType());
+                powerUpsByGuid[powerUp.Id] = powerUpPrefab;
+                powerUpIconsByGuid[powerUp.Id] = ResourceLoader.GetSpriteForPowerUp(powerUp.GetType());
             }
         }
 
         public IList<Guid> GetAllPowerUpGuids() {
-            return powerUpsByGuid.Keys();
+            return powerUpsByGuid.Keys as IList<Guid>;
         }
 
-        public IPowerUp GetPowerUpByGuid(Guid powerUpGuid) {
+        public GameObject GetPowerUpByGuid(Guid powerUpGuid) {
             return powerUpsByGuid[powerUpGuid];
         }
 

@@ -1,11 +1,5 @@
-﻿using Random = UnityEngine.Random;
-using UnityEngine;
-using System;
-using System.Collections.Generic;
-using SPFT.EventSystem;
-using SPFT.EventSystem.Events;
+﻿using UnityEngine;
 using SPFT.PowerUpSystem;
-using SPFT.PowerUpSystem.PowerUps;
 
 public class StoreManager : SingletonBase<StoreManager> {
 
@@ -38,23 +32,10 @@ public class StoreManager : SingletonBase<StoreManager> {
 
     private void BuyRandomPowerUp() {
         // kick off slot machine animation
-        GameObject selectedPowerUpPrefab = pwrUpSlotMachine.PullSlotMachine();
-
-        // Select and instantiate a random PowerUp from the master list.
-        //GameObject powerUpTemplate = powerUpMasterList[Random.Range(0, powerUpMasterList.Count)];
-        IPowerUp powerUp = Instantiate(selectedPowerUpPrefab, Vector3.zero, Quaternion.identity).GetComponent<IPowerUp>();
+        SlotMachine.Instance.PlaySlotsForPowerUp();
 
         // Charge the player for the cost of a PowerUp.
         wallet.ChargePlayer(gameSettings.powerUpCost);
-
-        Debug.Log($"Successfully bought the {powerUp.GetType().ToString()} PowerUp Type.");
-
-        // Notify listeners that a PowerUp has been acquired.
-        PowerUpAcquiredEvent powerUpAcquiredEvent = new PowerUpAcquiredEvent() {
-            powerUp = powerUp,
-            activationType = PowerUpActivationType.MANUAL
-        };
-        EventManager.Instance.NotifyListeners(powerUpAcquiredEvent);
     }
 
 }

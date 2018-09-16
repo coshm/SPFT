@@ -7,7 +7,7 @@ namespace SPFT.PowerUpSystem.PowerUps {
 
         private const int INIT_ARG_COUNT = 2;
 
-        private PowerUpManager pwrUpMgr;
+        private PowerUpLifeCycleManager pwrUpLifeCycleMgr;
         private int[] reorderedIconIndices;
 
         public override void Initialize(params PowerUpArg[] args) {
@@ -31,19 +31,19 @@ namespace SPFT.PowerUpSystem.PowerUps {
         
         // Use this for initialization
         void Awake() {
-            pwrUpMgr = PowerUpManager.Instance;
+            pwrUpLifeCycleMgr = PowerUpLifeCycleManager.Instance;
         }
 
         // Update is called once per frame
         void Update() {
             if (IsActive && Input.GetMouseButtonDown(0)) {
                 RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
-                if (hit.collider != null && pwrUpMgr.IsAPowerUpIcon(hit.collider.gameObject)) {
-                    int iconIdx = pwrUpMgr.GetIndexFromIconTag(hit.collider.gameObject);
+                if (hit.collider != null && pwrUpLifeCycleMgr.IsAPowerUpIcon(hit.collider.gameObject)) {
+                    int iconIdx = pwrUpLifeCycleMgr.GetIndexFromIconTag(hit.collider.gameObject);
                     reorderedIconIndices[reorderedIconIndices.Length] = iconIdx;
 
-                    if (reorderedIconIndices.Length == pwrUpMgr.StoredPowerUpCount) {
-                        pwrUpMgr.SetStoredPowerUpOrder(reorderedIconIndices);
+                    if (reorderedIconIndices.Length == pwrUpLifeCycleMgr.StoredPowerUpCount) {
+                        pwrUpLifeCycleMgr.SetStoredPowerUpOrder(reorderedIconIndices);
                         Deactivate();
                     }
                 }
@@ -53,10 +53,10 @@ namespace SPFT.PowerUpSystem.PowerUps {
         public override void Activate() {
             Debug.Log($"Activating {GetType()} PowerUp.");
             IsActive = true;
-            if (pwrUpMgr.StoredPowerUpCount == 0) {
+            if (pwrUpLifeCycleMgr.StoredPowerUpCount == 0) {
                 Deactivate();
             } else {
-                reorderedIconIndices = new int[pwrUpMgr.StoredPowerUpCount];
+                reorderedIconIndices = new int[pwrUpLifeCycleMgr.StoredPowerUpCount];
             }
         }
 

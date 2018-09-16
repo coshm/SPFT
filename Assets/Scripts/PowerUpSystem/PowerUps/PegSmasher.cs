@@ -77,7 +77,7 @@ namespace SPFT.PowerUpSystem.PowerUps {
             IsActive = true;
 
             // Boost the players velocity at the time of Activation
-            Rigidbody2D puck = PowerUpManager.Instance.puck.GetComponent<Rigidbody2D>();
+            Rigidbody2D puck = PowerUpLifeCycleManager.Instance.puck.GetComponent<Rigidbody2D>();
             puck.velocity *= puckVelocityMod;
             pegBreakCount = 0;
 

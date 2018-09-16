@@ -2,25 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System;
-using SPFT.PowerUpSystem.PowerUps;
 using System.Reflection;
 
-public class DataLoader : MonoBehaviour {
+public class DataLoader : SingletonBase<DataLoader> {
+    
+    private const string POWER_UP_DATA_FILE = "powerUpData.json";
 
-    private static DataLoader dataLoader;
-    public static DataLoader Instance {
-        get {
-            if (!dataLoader) {
-                dataLoader = FindObjectOfType(typeof(DataLoader)) as DataLoader;
-                if (!dataLoader) {
-                    Debug.LogError("There needs to be one active PowerUpManager script on a GameObject in your scene.");
-                }
-            }
-            return dataLoader;
-        }
-    }
-
-    public string AssemblyDirectory {
+    private string AssemblyDirectory {
         get {
             string codeBase = Assembly.GetExecutingAssembly().CodeBase;
             Debug.Log($"Assembly Name={codeBase}");
@@ -30,59 +18,26 @@ public class DataLoader : MonoBehaviour {
         }
     }
 
-    private const string POWER_UP_DATA_FILE = "powerUpData.json";
-
-    private bool hasLoadedPowerUpData = false;
-
-    private IDictionary<Guid, GameObject> powerUpPrefabsByGuid;
-    private IDictionary<Guid, Sprite> powerUpIconsByGuid;
-
-    private ResourceLoader resourceLoader;
-
-    void Start() {
-        resourceLoader = ResourceLoader.Instance;
-        powerUpPrefabsByGuid = new Dictionary<Guid, GameObject>();
-        powerUpIconsByGuid = new Dictionary<Guid, Sprite>();
-        LoadPowerUpData();
-    }
-
-    public IList<Guid> GetAllPowerUpGuids() {
-        return powerUpPrefabsByGuid.Keys();
-    }
-
-    public GameObject GetPowerUpPrefabForGuid(Guid powerUpGuid) {
-        return powerUpPrefabsByGuid[powerUpGuid];
-    }
-
-    public Sprite GetPowerUpIconForGuid(Guid powerUpGuid) {
-        return powerUpIconsByGuid[powerUpGuid];
-    }
-
-    private void LoadPowerUpData() {
+    public IDictionary<Type, PowerUpData> LoadPowerUpData() {
         // Load the Json Data from the PowerUpData file into a local string
         string powerUpJsonData = LoadJsonAsString(POWER_UP_DATA_FILE);
 
         // Pass the json to JsonUtility, and tell it to create a GameData object from it
-        PowerUpDataContainer powerUpDataContainer = JsonUtility.FromJson<PowerUpDataContainer>(dataAsJson);
+        PowerUpDataContainer powerUpDataContainer = JsonUtility.FromJson<PowerUpDataContainer>(powerUpJsonData);
 
+        IDictionary<Type, PowerUpData> powerUpDataByType = new Dictionary<Type, PowerUpData>();
         foreach (PowerUpData powerUpData in powerUpDataContainer.powerUpDataList) {
             string fullyQualifiedTypeName = powerUpData.className + ", " + Assembly.GetExecutingAssembly().FullName;
             Debug.Log($"Loading Type for Class={fullyQualifiedTypeName}");
 
             Type powerUpType = Type.GetType(fullyQualifiedTypeName);
-            if (powerUpType == null)
-            {
+            if (powerUpType == null) {
                 throw new InvalidOperationException($"No Type exists for {powerUpData.className}");
             }
 
-            // Create GameObject and add our powerUpType component.
-            GameObject powerUpObj = new GameObject();
-            IPowerUp powerUp = powerUpObj.AddComponent(powerUpType) as IPowerUp;
-            powerUp.Initialize(powerUpData.initArgs);
-
-            powerUpPrefabsByGuid[powerUp.Guid] = powerUpObj;
-            powerUpIconsByGuid[powerUp.Guid] = resourceLoader.GetSpriteForPowerUp(powerUp.GetType());
+            powerUpDataByType[powerUpType] = powerUpData;
         }
+        return powerUpDataByType;
     }
 
     public string LoadJsonAsString(string fileName) {

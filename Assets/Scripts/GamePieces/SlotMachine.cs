@@ -1,38 +1,18 @@
 ﻿using UnityEngine;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using SPFT.EventSystem;
+using SPFT.EventSystem.Events;
+using SPFT.PowerUpSystem;
+using SPFT.PowerUpSystem.PowerUps;
 using SPFT.State;
+using Random = UnityEngine.Random;
 
-public class SlotMachine : MonoBehaviour
-{
+public class SlotMachine : SingletonBase<SlotMachine> {
 
-    private static const int DOWN = -1;
-    private static const int UP = 1;
-
-    private static SlotMachine slotMachine;
-    public static SlotMachine Instance
-    {
-        get
-        {
-            if (!slotMachine)
-            {
-                slotMachine = FindObjectOfType(typeof(SlotMachine)) as SlotMachine;
-                if (!storeMgr)
-                {
-                    Debug.LogError("There needs to be one active SlotMachine script on a GameObject in your scene.");
-                }
-                else
-                {
-                    slotMachine.Init();
-                }
-            }
-            return slotMachine;
-        }
-    }
-
-    private void Init() { }
+    private const int DOWN = -1;
+    private const int UP = 1;
 
     [SerializeField]
     public IDictionary<int, SpriteRenderer> slotMachineRenderers;
@@ -47,6 +27,7 @@ public class SlotMachine : MonoBehaviour
     public Vector2 fullRotationsToCompleteRange;
     public float reelTransitionSpeed;
     public float reelSpinSpeed;
+    public int minPowerUpSelectionSize;
 
     private GameSettings gameSettings;
     private GameStateManager gameState;
@@ -68,10 +49,11 @@ public class SlotMachine : MonoBehaviour
         powerUpDataStore = PowerUpDataStore.Instance;
 
         // Initializing various properties
-        visibleReelYBounds = visibleReelYBounds ?? gameSettings.visibleReelYBounds;
-        fullRotationsToCompleteRange = fullRotationsToCompleteRange ?? gameSettings.fullRotationsToCompleteRange;
+        visibleReelYBounds = visibleReelYBounds == null ? gameSettings.visibleReelYBounds : visibleReelYBounds;
+        fullRotationsToCompleteRange = fullRotationsToCompleteRange == null ? gameSettings.fullRotationsToCompleteRange : fullRotationsToCompleteRange;
         reelTransitionSpeed = reelTransitionSpeed == 0f ? gameSettings.reelTransitionSpeed : reelTransitionSpeed;
         reelSpinSpeed = reelSpinSpeed == 0f ? gameSettings.reelSpinSpeed : reelSpinSpeed;
+        minPowerUpSelectionSize = minPowerUpSelectionSize == 0 ? gameSettings.minPowerUpSelectionSize : minPowerUpSelectionSize;
         slotHeight = slotMachineRenderers[0].bounds.max.y - slotMachineRenderers[0].bounds.min.y;
         slotCount = slotMachineRenderers.Count;
 
@@ -96,19 +78,19 @@ public class SlotMachine : MonoBehaviour
     //   will receive once the Reel stops.
     public void PlaySlotsForPowerUp() {
         Guid winningPowerUpGuid = SelectWinningPowerUp();
-        GameObject powerUpPrefab = powerUpDataStore.GetPowerUpByGuid(winningPowerUpGuid).gameObject;
+        GameObject powerUpPrefab = powerUpDataStore.GetPowerUpByGuid(winningPowerUpGuid);
         winningPowerUp = Instantiate(powerUpPrefab, Vector3.zero, Quaternion.identity).GetComponent<IPowerUp>();
 
         gameState.SetSlotMachineState(SlotMachineState.START_SPINNING);
-        fullRotationsToComplete = Random.Range(fullRotationsToCompleteRange.x, fullRotationsToCompleteRange.y);
+        fullRotationsToComplete = Random.Range((int) fullRotationsToCompleteRange.x, (int) fullRotationsToCompleteRange.y);
     }
 
     // Select a smart "pseudo" random PowerUp that the player will receive once the spinning
     //   is over, being mindful of the number of times other PowerUps have been selected.
     private Guid SelectWinningPowerUp() {
         // Create a list of PowerUps ordered by number of times they've been selected before
-        IList<Guid> potentialWinners = powerUpWinCounts.OrderBy(winCount => winCount.Value)
-                .Select(winCount-> { winCount => winCount.Key })
+        List<Guid> potentialWinners = powerUpWinCounts.OrderBy(winCount => winCount.Value)
+                .Select(winCount => winCount.Key)
                 .ToList<Guid>();
 
         // Pick PowerUp from a subset of PowerUps that have been picked least often
@@ -126,15 +108,15 @@ public class SlotMachine : MonoBehaviour
     }
 
     void Update() {
-        switch (ganeState.SlotState) {
+        switch (gameState.SlotState) {
             case SlotMachineState.AT_REST:
                 break;
             case SlotMachineState.START_SPINNING:
                 MoveSlotReel(UP, reelTransitionSpeed);
                 if (slotMachineSlots.ElementAt(0).HasMovedPassedY(UP, visibleReelYBounds.y)) {
                     gameState.SetSlotMachineState(SlotMachineState.SPINNING);
-                    reelRotationsCount = 0f;
-                    slotShiftCount = 0f;
+                    reelRotationsCount = 0;
+                    slotShiftCount = 0;
                     // TODO: Add "blur" effect
                 }
                 break;
@@ -150,10 +132,13 @@ public class SlotMachine : MonoBehaviour
                 MoveSlotReel(UP, reelTransitionSpeed);
                 if (slotMachineSlots.ElementAt(0).HasMovedPassedY(DOWN, visibleReelYBounds.x)) {
                     gameState.SetSlotMachineState(SlotMachineState.AT_REST);
-                    SlotMachineCompleteEvent slotMachineCompleteEvent = new SlotMachineCompleteEvent() {
-                        powerUp = winningPowerUp;
+
+                    // Notify listeners that a PowerUp has been acquired.
+                    PowerUpAcquiredEvent powerUpAcquiredEvent = new PowerUpAcquiredEvent() {
+                        powerUp = winningPowerUp,
+                        activationType = PowerUpActivationType.MANUAL
                     };
-                    EventManager.Instance.NotifyListeners(slotMachineCompleteEvent);
+                    EventManager.Instance.NotifyListeners(powerUpAcquiredEvent);
                 }
                 break;
         }
@@ -163,7 +148,7 @@ public class SlotMachine : MonoBehaviour
     private void MoveSlotReel(int direction, float reelSpeed) {
         float deltaY = Time.deltaTime * reelSpeed;
         foreach (SlotMachineSlot slotMachineSlot in slotMachineSlots) {
-            slotMachineSlot.MoveY(direction, deltaY);
+            slotMachineSlot.MoveSlot(direction, deltaY);
         }
     }
 
@@ -208,7 +193,7 @@ public class SlotMachine : MonoBehaviour
     }
 
     // Track the order of PowerUps the player has won and how many times.
-    private void RecordWinningPowerUp(Guid winningPowerUp) {
+    private void RecordWinningPowerUp(Guid winningPowerUpGuid) {
         int winCount = powerUpWinCounts[winningPowerUpGuid];
         powerUpWinCounts[winningPowerUpGuid] = winCount++;
         winningPowerUpHistory.Add(winningPowerUpGuid);
@@ -224,22 +209,24 @@ public class SlotMachine : MonoBehaviour
         private Transform slotTransform;
 
         public SlotMachineSlot(SpriteRenderer slotRenderer) {
-            SlotRenderer = slotRenderer;
+            this.slotRenderer = slotRenderer;
             slotTransform = slotTransform.transform;
         }
 
         public void SetSlotSprite(Sprite slotSprite, Guid powerUpGuid) {
-            SlotRenderer.sprite = slotSprite;
+            slotRenderer.sprite = slotSprite;
             PowerUpGuid = powerUpGuid;
         }
 
         public void MoveSlot(int direction, float deltaY) {
-            slotTransform.position.y += Mathf.Sign(direction) * deltaY;
+            Vector2 newPos = slotTransform.position;
+            newPos.y += Mathf.Sign(direction) * deltaY;
+            slotTransform.position = newPos;
         }
 
         public bool IsOffCamera(Vector2 visibleReelYBounds) {
-            return SlotRenderer.bounds.min.y >= visibleReelYBounds.x 
-                    || SlotRenderer.bounds.max.y <= visibleReelYBounds.y;
+            return slotRenderer.bounds.min.y >= visibleReelYBounds.x 
+                    || slotRenderer.bounds.max.y <= visibleReelYBounds.y;
         }
 
         public bool HasMovedPassedY(int direction, float yPos) {

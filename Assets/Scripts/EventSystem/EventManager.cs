@@ -9,19 +9,7 @@ namespace SPFT.EventSystem {
     public delegate void EventListener<E>(E e) where E : IEvent;
 
     /* This is the actual EventManager that handles registering listeners and notifying them of relevant Events */
-    public class EventManager : MonoBehaviour {
-        private static EventManager eventMgr;
-        public static EventManager Instance {
-            get {
-                if (!eventMgr) {
-                    eventMgr = FindObjectOfType(typeof(EventManager)) as EventManager;
-                    if (!eventMgr) {
-                        Debug.LogError($"There needs to be one active {GetType()} script on a GameObject in your scene.");
-                    }
-                }
-                return eventMgr;
-            }
-        }
+    public class EventManager : SingletonBase<EventManager> {
 
         private Dictionary<Type, List<Delegate>> listenersByEventType;
 

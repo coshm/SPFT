@@ -1,5 +1,8 @@
 ﻿using UnityEngine;
+using System;
 using System.Collections;
+using System.Collections.Generic;
+using Random = UnityEngine.Random;
 
 namespace SPFT.PowerUpSystem.PowerUps {
 
@@ -44,10 +47,10 @@ namespace SPFT.PowerUpSystem.PowerUps {
                         teleportExitYBounds = Utilities.ConvertStringOrDefault(arg.value, gameSettings.teleportExitYBounds);
                         break;
                     case TELEPORT_ENTER_CLIP:
-                        teleportEnterClip = ResourceLoader.LoadResource(typeof(AnimationClip), arg.value);
+                        teleportEnterClip = ResourceLoader.LoadResource<AnimationClip>(arg.value);
                         break;
                     case TELEPORT_EXIT_CLIP:
-                        teleportExitClip = ResourceLoader.LoadResource(typeof(AnimationClip), arg.value);
+                        teleportExitClip = ResourceLoader.LoadResource<AnimationClip>(arg.value);
                         break;
                     default:
                         Debug.LogWarning($"No parameter found for {arg.name}");
@@ -57,7 +60,7 @@ namespace SPFT.PowerUpSystem.PowerUps {
         }
 
         void Start() {
-            puck = PowerUpManager.Instance.puck.GetComponent<Rigidbody2D>();
+            puck = PowerUpLifeCycleManager.Instance.puck.GetComponent<Rigidbody2D>();
             puckColliderRadius = puck.GetComponent<CircleCollider2D>().radius;
         }
 
@@ -78,7 +81,7 @@ namespace SPFT.PowerUpSystem.PowerUps {
             Vector2 teleportTo = FindTeleportExit();
 
             // Play teleport animations
-            StartCoroutine(PlayTeleportAnimations());
+            //StartCoroutine(PlayTeleportAnimations());
 
             // Move Puck to teleport position and re-enable physics
             puck.position = teleportTo;
@@ -101,7 +104,7 @@ namespace SPFT.PowerUpSystem.PowerUps {
 
         // Block activation if the Puck is below the Activation Y Bound
         public override bool IsBlocked(List<IPowerUp> activePowerUps) {
-            if (puck.position.y < teleportEnterYBound) {
+            if (puck.position.y < minimumYToTeleport) {
                 return true;
             }
 
@@ -142,9 +145,10 @@ namespace SPFT.PowerUpSystem.PowerUps {
 
         private bool IsPegBlockingTeleportation(Vector2 newPos) {
             Collider2D[] colliders = Physics2D.OverlapCircleAll(newPos, puckColliderRadius + 0.1f);
-            if (colliders == null || colliders.Length) {
+            if (colliders == null || colliders.Length == 0) {
                 return false;
             }
+
             foreach (Collider2D collider in colliders) {
                 if (collider.CompareTag(gameSettings.pegTag)) {
                     return true;

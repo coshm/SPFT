@@ -2,20 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GoalManager : MonoBehaviour {
-
-    private static GoalManager goalManager;
-    public static GoalManager Instance {
-        get {
-            if (!goalManager) {
-                goalManager = FindObjectOfType(typeof(GoalManager)) as GoalManager;
-                if (!goalManager) {
-                    Debug.LogError("There needs to be one active GoalManager script on a GameObject in your scene.");
-                }
-            }
-            return goalManager;
-        }
-    }
+public class GoalManager : SingletonBase<GoalManager> {
 
     private IList<Goal> allGoals;
 
@@ -56,7 +43,7 @@ public class GoalManager : MonoBehaviour {
 
     public void MultipleGoalScores(float multiplier) {
         foreach(Goal goal in allGoals) {
-            goal.ChangeScore(goal.Scrore * multiplier);
+            goal.ChangeScore((int) (goal.Score * multiplier));
         }
     }
 

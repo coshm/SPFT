@@ -29,7 +29,7 @@ public class Puck : MonoBehaviour {
     }
 
     void Start() {
-        PowerUpManager.Instance.puck = this;
+        PowerUpLifeCycleManager.Instance.puck = this;
         gameSettings = GameSettings.Instance;
 
         EventManager.Instance.RegisterListener<PowerUpActivatedEvent>(OnPowerUpActivation);

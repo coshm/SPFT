@@ -1,6 +1,9 @@
 ﻿using UnityEngine;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using SPFT.EventSystem;
+using SPFT.EventSystem.Events;
 
 namespace SPFT.PowerUpSystem.PowerUps {
 
@@ -45,7 +48,7 @@ namespace SPFT.PowerUpSystem.PowerUps {
 
         public abstract void Deactivate();
 
-        public bool IsBlocked(List<IPowerUp> activePowerUps) {
+        public virtual bool IsBlocked(List<IPowerUp> activePowerUps) {
             foreach (IPowerUp powerUp in activePowerUps) {
                 if (powerUp.GetType() == this.GetType()) {
                     return true;

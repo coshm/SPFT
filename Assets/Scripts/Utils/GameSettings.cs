@@ -1,21 +1,6 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
-public class GameSettings : MonoBehaviour {
-
-    private static GameSettings gameSettings;
-    public static GameSettings Instance {
-        get {
-            if (!gameSettings) {
-                gameSettings = FindObjectOfType(typeof(GameSettings)) as GameSettings;
-                if (!gameSettings) {
-                    Debug.LogError("There needs to be one active GameSettings script on a GameObject in your scene.");
-                }
-            }
-            return gameSettings;
-        }
-    }
+public class GameSettings : SingletonBase<GameSettings> {
 
     // Input Names
     public string vertical = "Vertical";
@@ -52,10 +37,17 @@ public class GameSettings : MonoBehaviour {
     public float pegRespawnDelay = 1f;
     public int maxExplosionCount = 3;
 
-    public float teleportEnterYBound = 5f;
+    public float minimumYToTeleport = 5f;
     public Vector2 teleportExitXBounds = new Vector2(-20f, 20f);
     public Vector2 teleportExitYBounds = new Vector2(20f, 10f);
 
     public float scoreMultiplier = 1.5f;
     public float scoreModDuration = 30f;
+
+    // Slot Machine
+    public Vector2 visibleReelYBounds = new Vector2(-20, 20);
+    public Vector2 fullRotationsToCompleteRange = new Vector2(3, 5);
+    public float reelTransitionSpeed = 1f;
+    public float reelSpinSpeed = 2f;
+    public int minPowerUpSelectionSize = 3;
 }

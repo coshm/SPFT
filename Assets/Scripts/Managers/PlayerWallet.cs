@@ -7,21 +7,6 @@ using SPFT.State;
 
 public class PlayerWallet : SingletonBase<PlayerWallet> {
 
-    private static PlayerWallet wallet;
-    public static PlayerWallet Instance {
-        get {
-            if (!wallet) {
-                wallet = FindObjectOfType(typeof(PlayerWallet)) as PlayerWallet;
-                if (!wallet) {
-                    Debug.LogError("There needs to be one active PlayerWallet script on a GameObject in your scene.");
-                } else {
-                    wallet.Init();
-                }
-            }
-            return wallet;
-        }
-    }
-
     private const string BALANCE_PREFIX = "CASH: $";
 
     private int totalBalance;

@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
-using System.Collections;
+using System;
+using SPFT.EventSystem.Events;
 
 namespace SPFT.PowerUpSystem.PowerUps {
 
@@ -14,7 +15,7 @@ namespace SPFT.PowerUpSystem.PowerUps {
 
         public float scoreMultiplier;
         public float scoreModDuration;
-        public float pwrUpDuration;
+        public float powerUpDuration;
 
         private GoalManager goalMgr;
         private Guid timerId;
@@ -34,7 +35,7 @@ namespace SPFT.PowerUpSystem.PowerUps {
                         scoreModDuration = Utilities.ConvertStringOrDefault(arg.value, gameSettings.scoreModDuration);
                         break;
                     case PWR_UP_DURATION:
-                        pwrUpDuration = Utilities.ConvertStringOrDefault(arg.value, gameSettings.pwrUpDuration);
+                        powerUpDuration = Utilities.ConvertStringOrDefault(arg.value, gameSettings.powerUpDuration);
                         break;
                     default:
                         Debug.LogWarning($"No parameter found for {arg.name}");
@@ -54,7 +55,7 @@ namespace SPFT.PowerUpSystem.PowerUps {
             goalMgr.MultipleGoalScores(scoreMultiplier);
 
             // Start timer for this PowerUps lifecycle
-            timerId = PowerUpManager.Instance.powerUpTimer.StartTimer(pwrUpDuration);
+            timerId = PowerUpTimer.Instance.StartTimer(powerUpDuration);
         }
 
         public override void Deactivate() {

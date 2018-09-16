@@ -2,32 +2,16 @@
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using SPFT.EventSystem;
 using SPFT.EventSystem.Events;
 using SPFT.PowerUpSystem.PowerUps;
 
 namespace SPFT.PowerUpSystem {
 
-    public class PowerUpLifeCycleManager : MonoBehaviour {
+    public class PowerUpLifeCycleManager : SingletonBase<PowerUpLifeCycleManager> {
 
         public const string ICON_TAG_PREFIX = "StoredPowerUpIcon";
         public const char ICON_TAG_DELIMETER = '_';
-
-        private static PowerUpLifeCycleManager pwrUpLifeCycleMgr;
-        public static PowerUpLifeCycleManager Instance {
-            get {
-                if (!pwrUpLifeCycleMgr) {
-                    pwrUpLifeCycleMgr = FindObjectOfType(typeof(PowerUpLifeCycleManager)) as PowerUpLifeCycleManager;
-                    if (!pwrUpLifeCycleMgr) {
-                        Debug.LogError($"There needs to be one active {GetType()} script on a GameObject in your scene.");
-                    } else {
-                        pwrUpLifeCycleMgr.Init();
-                    }
-                }
-                return pwrUpLifeCycleMgr;
-            }
-        }
 
         public Puck puck;
         public PowerUpTimer pwrUpTimer;
@@ -62,7 +46,7 @@ namespace SPFT.PowerUpSystem {
             }
 
             // Initialize each iconSlot with by setting the empty iconSlot sprite and getting their indices.
-            emptyPowerUpIconSlot = SpriteHelper.GetSprite(SpriteHelper.POWER_UP_ICONS, 6);
+            emptyPowerUpIconSlot = ResourceLoader.GetSprite(ResourceLoader.POWER_UP_ICONS, 6);
             foreach (SpriteRenderer iconSlot in iconSlots) {
                 int idx = GetIndexFromIconTag(iconSlot.gameObject);
                 iconSlot.sprite = emptyPowerUpIconSlot;
@@ -139,13 +123,11 @@ namespace SPFT.PowerUpSystem {
 
         private void UpdateStoredPowerUpIcons() {
             for (int i = 0; i < storedPowerUpIconSlots.Count; i++) {
-
                 if (i >= StoredPowerUpCount) {
                     storedPowerUpIconSlots[i].sprite = storedPowerUps.ElementAt(i).Icon;
                 } else {
                     storedPowerUpIconSlots[i].sprite = null;
                 }
-
             }
         }
 
@@ -162,8 +144,8 @@ namespace SPFT.PowerUpSystem {
         }
 
         public void OnPowerUpExpiration(PowerUpExpiredEvent powerUpExpiredEvent) {
-            activePowerUps.Remove(powerUp);
-            expiredPowerUps.Add(powerUp);
+            activePowerUps.Remove(powerUpExpiredEvent.powerUp);
+            expiredPowerUps.Add(powerUpExpiredEvent.powerUp);
         }
     }
 }

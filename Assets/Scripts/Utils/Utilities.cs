@@ -4,25 +4,6 @@ using UnityEngine;
 
 public class Utilities {
 
-    public const string POWER_UP_ICONS = "SPFT_powerUpIcons";
-
-    private static Dictionary<string, Sprite[]> spriteSheetsByName;
-
-    public static Sprite[] GetSpriteSheet(string sheetName)
-    {
-        if (!spriteSheetsByName.ContainsKey(sheetName))
-        {
-            spriteSheetsByName[sheetName] = Resources.LoadAll<Sprite>($"Sprites/{sheetName}");
-        }
-        return spriteSheetsByName[sheetName];
-    }
-
-    public static SpriteHelper GetSprite(string sheetName, int spriteIdx)
-    {
-        Sprite[] spriteSheet = GetSpriteSheet(sheetName);
-        return spriteSheet[spriteIdx];
-    }
-
     public static List<T> OrderObjsByName<T>(T[] unorderedObjs) where T : MonoBehaviour {
         try {
             List<T> list = new List<T>(unorderedObjs.Length);

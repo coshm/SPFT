@@ -55,9 +55,10 @@ public class Peg : MonoBehaviour {
 
     private bool IsPuckBlockingRespawn() {
         Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, pegColl.radius + 0.1f);
-        if (colliders == null || colliders.Length) {
+        if (colliders == null || colliders.Length == 0) {
             return false;
         }
+
         foreach (Collider2D collider in colliders) {
             if (collider.CompareTag(gameSettings.puckTag)) {
                 return true;

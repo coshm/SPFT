@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using UnityEngine;
 using SPFT.EventSystem;
 using SPFT.EventSystem.Events;
@@ -21,31 +20,13 @@ namespace SPFT.State {
         STOP_SPINNING
     }
 
-    public class GameStateManager : MonoBehaviour {
-
-        private static GameStateManager gameStateMgr;
-        public static GameStateManager Instance
-        {
-            get
-            {
-                if (!gameStateMgr) {
-                    gameStateMgr = FindObjectOfType(typeof(GameStateManager)) as GameStateManager;
-                    if (!gameStateMgr) {
-                        Debug.LogError("There needs to be one active GameStateManager script on a GameObject in your scene.");
-                    } else {
-                        gameStateMgr.Init();
-                    }
-                }
-                return gameStateMgr;
-            }
-        }
-
-        void Init() { }
-
+    public class GameStateManager : SingletonBase<GameStateManager> {
+        
         public MainGameState State { get; private set; }
         private MainGameState unpausedState;
 
         public SlotMachineState SlotState { get; private set; }
+        private const string SLOT_STATE_ERROR_MSG = "Invalid State. Attempted to transition from SlotState {0} to {1}. Valid transitions are {2}.";
         
         void Start() {
             State = MainGameState.PRE_LAUNCH;
@@ -129,7 +110,29 @@ namespace SPFT.State {
         /* ~~~~~~~~~~~~~~~~~~~~~~~~~~ Slot State Handlers ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
         public void SetSlotMachineState(SlotMachineState slotState) {
-            // TODO: Verify the state transition is valid
+            switch (SlotState) {
+                case SlotMachineState.AT_REST:
+                    if (slotState != SlotMachineState.START_SPINNING) {
+                        throw new ArgumentException(string.Format(SLOT_STATE_ERROR_MSG, SlotState, slotState, SlotMachineState.START_SPINNING));
+                    }
+                    break;
+                case SlotMachineState.START_SPINNING:
+                    if (slotState != SlotMachineState.SPINNING) {
+                        throw new ArgumentException(string.Format(SLOT_STATE_ERROR_MSG, SlotState, slotState, SlotMachineState.SPINNING));
+                    }
+                    break;
+                case SlotMachineState.SPINNING:
+                    if (slotState != SlotMachineState.STOP_SPINNING) {
+                        throw new ArgumentException(string.Format(SLOT_STATE_ERROR_MSG, SlotState, slotState, SlotMachineState.STOP_SPINNING));
+                    }
+                    break;
+                case SlotMachineState.STOP_SPINNING:
+                    if (slotState != SlotMachineState.AT_REST) {
+                        throw new ArgumentException(string.Format(SLOT_STATE_ERROR_MSG, SlotState, slotState, SlotMachineState.AT_REST));
+                    }
+                    break;
+            }
+
             SlotState = slotState;
         }
     }
