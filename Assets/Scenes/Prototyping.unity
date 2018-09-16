@@ -2269,12 +2269,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 32, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children:
-  - {fileID: 1077072465}
-  - {fileID: 471710651}
-  - {fileID: 1780234074}
-  - {fileID: 2094666250}
-  - {fileID: 414751089}
+  m_Children: []
   m_Father: {fileID: 1489553153}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -4168,7 +4163,7 @@ GameObject:
   - component: {fileID: 414751089}
   - component: {fileID: 414751090}
   m_Layer: 0
-  m_Name: PowerUpSlot4
+  m_Name: StoredPowerUpIcon4
   m_TagString: StoredPowerUpIcon_4
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4181,10 +4176,10 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 414751088}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -4.75, y: 4.69, z: 0}
+  m_LocalPosition: {x: 27.25, y: 4.69, z: 0}
   m_LocalScale: {x: 5, y: 5, z: 1}
   m_Children: []
-  m_Father: {fileID: 231756661}
+  m_Father: {fileID: 1650505840}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &414751090
@@ -4589,7 +4584,7 @@ GameObject:
   - component: {fileID: 471710651}
   - component: {fileID: 471710652}
   m_Layer: 0
-  m_Name: PowerUpSlot1
+  m_Name: StoredPowerUpIcon1
   m_TagString: StoredPowerUpIcon_1
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4601,11 +4596,11 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 471710650}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -4.75, y: -14.49, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 27.25, y: -14.49, z: 0}
   m_LocalScale: {x: 5, y: 5, z: 1}
   m_Children: []
-  m_Father: {fileID: 231756661}
+  m_Father: {fileID: 1650505840}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &471710652
@@ -8977,7 +8972,7 @@ GameObject:
   - component: {fileID: 1077072465}
   - component: {fileID: 1077072466}
   m_Layer: 0
-  m_Name: PowerUpSlot0
+  m_Name: StoredPowerUpIcon0
   m_TagString: StoredPowerUpIcon_0
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8990,10 +8985,10 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1077072464}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -4.75, y: -20.88, z: 0}
+  m_LocalPosition: {x: 27.25, y: -20.88, z: 0}
   m_LocalScale: {x: 5, y: 5, z: 1}
   m_Children: []
-  m_Father: {fileID: 231756661}
+  m_Father: {fileID: 1650505840}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &1077072466
@@ -9342,6 +9337,7 @@ MonoBehaviour:
   powerUpCost: 100
   maxStoredPowerUps: 5
   maxPowerUpCapacity: 3
+  pwrUpPostDeactivationDelay: 5
   puckBounceMod: 1
   powerUpDuration: 30
   puckVelocityMod: 2
@@ -9349,6 +9345,16 @@ MonoBehaviour:
   stutterDuration: 0.1
   pegRespawnDelay: 1
   maxExplosionCount: 3
+  minimumYToTeleport: 5
+  teleportExitXBounds: {x: -20, y: 20}
+  teleportExitYBounds: {x: 20, y: 10}
+  scoreMultiplier: 1.5
+  scoreModDuration: 30
+  visibleReelYBounds: {x: -20, y: 20}
+  fullRotationsToCompleteRange: {x: 3, y: 5}
+  reelTransitionSpeed: 1
+  reelSpinSpeed: 2
+  minPowerUpSelectionSize: 3
 --- !u!4 &1103307616
 Transform:
   m_ObjectHideFlags: 0
@@ -12310,6 +12316,7 @@ Transform:
   - {fileID: 1863902151}
   - {fileID: 402631078}
   - {fileID: 2001250406}
+  - {fileID: 1650505840}
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -13241,6 +13248,51 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 2.01, y: 0.16}
   m_EdgeRadius: 0
+--- !u!1 &1650505839
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1650505840}
+  - component: {fileID: 1650505841}
+  m_Layer: 0
+  m_Name: StorePowerUpWidget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1650505840
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1650505839}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children:
+  - {fileID: 1077072465}
+  - {fileID: 471710651}
+  - {fileID: 1780234074}
+  - {fileID: 2094666250}
+  - {fileID: 414751089}
+  m_Father: {fileID: 1489553153}
+  m_RootOrder: 8
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1650505841
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1650505839}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 10400f821dffdd64aa89c0b427d0c97d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1681687914
 GameObject:
   m_ObjectHideFlags: 0
@@ -14328,7 +14380,7 @@ GameObject:
   - component: {fileID: 1780234074}
   - component: {fileID: 1780234075}
   m_Layer: 0
-  m_Name: PowerUpSlot2
+  m_Name: StoredPowerUpIcon2
   m_TagString: StoredPowerUpIcon_2
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -14341,10 +14393,10 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1780234073}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -4.75, y: -8.1, z: 0}
+  m_LocalPosition: {x: 27.25, y: -8.1, z: 0}
   m_LocalScale: {x: 5, y: 5, z: 1}
   m_Children: []
-  m_Father: {fileID: 231756661}
+  m_Father: {fileID: 1650505840}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &1780234075
@@ -16862,7 +16914,7 @@ GameObject:
   - component: {fileID: 2094666250}
   - component: {fileID: 2094666251}
   m_Layer: 0
-  m_Name: PowerUpSlot3
+  m_Name: StoredPowerUpIcon3
   m_TagString: StoredPowerUpIcon_3
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -16875,10 +16927,10 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 2094666249}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -4.75, y: -1.7, z: 0}
+  m_LocalPosition: {x: 27.25, y: -1.7, z: 0}
   m_LocalScale: {x: 5, y: 5, z: 1}
   m_Children: []
-  m_Father: {fileID: 231756661}
+  m_Father: {fileID: 1650505840}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &2094666251

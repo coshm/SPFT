@@ -8,6 +8,7 @@ namespace SPFT.PowerUpSystem.PowerUps {
         private const int INIT_ARG_COUNT = 2;
 
         private PowerUpLifeCycleManager pwrUpLifeCycleMgr;
+        private StoredPowerUpWidget storedPowerUpWidget;
         private int[] reorderedIconIndices;
 
         public override void Initialize(params PowerUpArg[] args) {
@@ -32,14 +33,15 @@ namespace SPFT.PowerUpSystem.PowerUps {
         // Use this for initialization
         void Awake() {
             pwrUpLifeCycleMgr = PowerUpLifeCycleManager.Instance;
+            storedPowerUpWidget = StoredPowerUpWidget.Instance;
         }
 
         // Update is called once per frame
         void Update() {
             if (IsActive && Input.GetMouseButtonDown(0)) {
                 RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
-                if (hit.collider != null && pwrUpLifeCycleMgr.IsAPowerUpIcon(hit.collider.gameObject)) {
-                    int iconIdx = pwrUpLifeCycleMgr.GetIndexFromIconTag(hit.collider.gameObject);
+                if (hit.collider != null && storedPowerUpWidget.IsAPowerUpIcon(hit.collider.gameObject)) {
+                    int iconIdx = storedPowerUpWidget.GetIndexFromIconTag(hit.collider.gameObject);
                     reorderedIconIndices[reorderedIconIndices.Length] = iconIdx;
 
                     if (reorderedIconIndices.Length == pwrUpLifeCycleMgr.StoredPowerUpCount) {

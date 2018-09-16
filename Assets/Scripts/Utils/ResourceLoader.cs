@@ -8,6 +8,7 @@ public class ResourceLoader : SingletonBase<ResourceLoader> {
     /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Sprite Helpers ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
     public static readonly string POWER_UP_ICONS = "SPFT_powerUpIcons";
+    public static readonly string POWER_UP_WIDGET_SPOTS = "SPFT_powerUpWidgetSpots";
 
     private static readonly IDictionary<Type, int> POWER_UP_TO_SPRITE_SHEET_IDX = new Dictionary<Type, int> {
         [typeof(PegExploder)] = 0,
