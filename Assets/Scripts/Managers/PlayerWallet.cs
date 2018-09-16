@@ -5,7 +5,7 @@ using SPFT.EventSystem;
 using SPFT.EventSystem.Events;
 using SPFT.State;
 
-public class PlayerWallet : MonoBehaviour {
+public class PlayerWallet : SingletonBase<PlayerWallet> {
 
     private static PlayerWallet wallet;
     public static PlayerWallet Instance {

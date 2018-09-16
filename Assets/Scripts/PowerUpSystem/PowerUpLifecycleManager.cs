@@ -9,23 +9,23 @@ using SPFT.PowerUpSystem.PowerUps;
 
 namespace SPFT.PowerUpSystem {
 
-    public class PowerUpManager : MonoBehaviour {
+    public class PowerUpLifeCycleManager : MonoBehaviour {
 
         public const string ICON_TAG_PREFIX = "StoredPowerUpIcon";
         public const char ICON_TAG_DELIMETER = '_';
 
-        private static PowerUpManager powerUpMgr;
-        public static PowerUpManager Instance {
+        private static PowerUpLifeCycleManager pwrUpLifeCycleMgr;
+        public static PowerUpLifeCycleManager Instance {
             get {
-                if (!powerUpMgr) {
-                    powerUpMgr = FindObjectOfType(typeof(PowerUpManager)) as PowerUpManager;
-                    if (!powerUpMgr) {
-                        Debug.LogError("There needs to be one active PowerUpManager script on a GameObject in your scene.");
+                if (!pwrUpLifeCycleMgr) {
+                    pwrUpLifeCycleMgr = FindObjectOfType(typeof(PowerUpLifeCycleManager)) as PowerUpLifeCycleManager;
+                    if (!pwrUpLifeCycleMgr) {
+                        Debug.LogError($"There needs to be one active {GetType()} script on a GameObject in your scene.");
                     } else {
-                        powerUpMgr.Init();
+                        pwrUpLifeCycleMgr.Init();
                     }
                 }
-                return powerUpMgr;
+                return pwrUpLifeCycleMgr;
             }
         }
 

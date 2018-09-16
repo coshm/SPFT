@@ -5,7 +5,7 @@ using SPFT.PowerUpSystem.PowerUps;
 
 namespace SPFT.PowerUpSystem {
 
-    public class PowerUpDataStore : MonoBehaviour {
+    public class PowerUpDataStore : SingletonBase<PowerUpDataStore> {
 
         private DataLoader dataLoader;
         private ResourceLoader resourceLoader;

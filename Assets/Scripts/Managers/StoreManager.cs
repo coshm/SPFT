@@ -7,42 +7,20 @@ using SPFT.EventSystem.Events;
 using SPFT.PowerUpSystem;
 using SPFT.PowerUpSystem.PowerUps;
 
-public class StoreManager : MonoBehaviour {
+public class StoreManager : SingletonBase<StoreManager> {
 
-    private static StoreManager storeMgr;
-    public static StoreManager Instance {
-        get {
-            if (!storeMgr) {
-                storeMgr = FindObjectOfType(typeof(StoreManager)) as StoreManager;
-                if (!storeMgr) {
-                    Debug.LogError("There needs to be one active StoreManager script on a GameObject in your scene.");
-                } else {
-                    storeMgr.Init();
-                }
-            }
-            return storeMgr;
-        }
-    }
-    
     public bool IsBuyingPowerUp { get; private set; }
 
     private GameSettings gameSettings;
     private PlayerWallet wallet;
-    private PowerUpManager powerUpMgr;
+    private PowerUpLifeCycleManager pwrUpLifeCycleMgr;
     private SlotMachine pwrUpSlotMachine;
 
-    void Init() {
-        // what should go here?
-    }
-
     void Awake() {
-        //if (powerUpIconsByGuid == null || powerUpIconsByGuid.Count == 0) {
-        //    throw new InvalidOperationException("There must be at least one Sprite in powerUpIcons.");
-        //}
         IsBuyingPowerUp = false;
         gameSettings = GameSettings.Instance;
         wallet = PlayerWallet.Instance;
-        powerUpMgr = PowerUpManager.Instance;
+        pwrUpLifeCycleMgr = PowerUpLifeCycleManager.Instance;
         pwrUpSlotMachine = SlotMachine.Instance;
     }
 
