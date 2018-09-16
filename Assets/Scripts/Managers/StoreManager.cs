@@ -6,14 +6,15 @@ public class StoreManager : SingletonBase<StoreManager> {
     public bool IsBuyingPowerUp { get; private set; }
 
     private GameSettings gameSettings;
-    private PlayerWallet wallet;
+    private MoneyManager moneyMgr;
     private PowerUpLifeCycleManager pwrUpLifeCycleMgr;
     private SlotMachine pwrUpSlotMachine;
 
     void Awake() {
         IsBuyingPowerUp = false;
+
         gameSettings = GameSettings.Instance;
-        wallet = PlayerWallet.Instance;
+        moneyMgr = MoneyManager.Instance;
         pwrUpLifeCycleMgr = PowerUpLifeCycleManager.Instance;
         pwrUpSlotMachine = SlotMachine.Instance;
     }

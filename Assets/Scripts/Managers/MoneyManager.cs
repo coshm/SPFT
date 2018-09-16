@@ -5,33 +5,23 @@ using SPFT.EventSystem;
 using SPFT.EventSystem.Events;
 using SPFT.State;
 
-public class PlayerWallet : SingletonBase<PlayerWallet> {
+public class MoneyManager : SingletonBase<PlayerWallet> {
 
-    private const string BALANCE_PREFIX = "CASH: $";
-
-    private int totalBalance;
     private GameSettings gameSettings;
+    private GameStateManager gameState;
+    private MoneyDisplay moneyDisplay;
 
-    public GameObject goalAreas;
-    private Goal[] goals;
-
-    public Puck puck;
-    public Text totalBalanceText;
-
-    void Init() {
-        UpdateScoreDisplay();
-    }
+    private int cashBalance;
 
     void Awake() {
-        goals = goalAreas.GetComponentsInChildren<Goal>();
-        if (goals == null || goals.Length == 0) {
-            throw new InvalidOperationException("There must be at least one Goal in GoalAreas.");
-        }
+
     }
 
     void Start() {
         gameSettings = GameSettings.Instance;
-        totalBalance = gameSettings.startingCash;
+        gameState = GameStateManager.Instance;
+
+        cashBalance = gameSettings.startingCash;
 
         EventManager.Instance.RegisterListener<BuyPuckEvent>(OnPuckPurchase);
         EventManager.Instance.RegisterListener<PuckScoreEvent>(OnPuckScore);
@@ -39,9 +29,8 @@ public class PlayerWallet : SingletonBase<PlayerWallet> {
     }
 
     void Update() {
-        UpdateScoreDisplay();
         MainGameState gameState = GameStateManager.Instance.State;
-        if (gameState != MainGameState.GAME_PAUSED && Input.GetButtonDown(gameSettings.buyPowerUp)) {
+        if (!gameState.IsGamePaused() && Input.GetButtonDown(gameSettings.buyPowerUp)) {
             if (CanAffordCharge(gameSettings.powerUpCost)) {
                 ChargePlayer(gameSettings.powerUpCost);
                 EventManager.Instance.NotifyListeners(new BuyPowerUpEvent());

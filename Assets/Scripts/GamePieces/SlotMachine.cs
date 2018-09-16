@@ -18,16 +18,12 @@ public class SlotMachine : SingletonBase<SlotMachine> {
     public IDictionary<int, SpriteRenderer> slotMachineRenderers;
 
     private Queue<SlotMachineSlot> slotMachineSlots;
-    private IList<Guid> powerUpGuids;
-
-    private IList<Guid> winningPowerUpHistory;
-    private IDictionary<Guid, int> powerUpWinCounts;
+    private SlotMachineSlotPlanner slotPlanner;
 
     public Vector2 visibleReelYBounds;
     public Vector2 fullRotationsToCompleteRange;
     public float reelTransitionSpeed;
     public float reelSpinSpeed;
-    public int minPowerUpSelectionSize;
 
     private GameSettings gameSettings;
     private GameStateManager gameState;
@@ -53,13 +49,9 @@ public class SlotMachine : SingletonBase<SlotMachine> {
         fullRotationsToCompleteRange = fullRotationsToCompleteRange == null ? gameSettings.fullRotationsToCompleteRange : fullRotationsToCompleteRange;
         reelTransitionSpeed = reelTransitionSpeed == 0f ? gameSettings.reelTransitionSpeed : reelTransitionSpeed;
         reelSpinSpeed = reelSpinSpeed == 0f ? gameSettings.reelSpinSpeed : reelSpinSpeed;
-        minPowerUpSelectionSize = minPowerUpSelectionSize == 0 ? gameSettings.minPowerUpSelectionSize : minPowerUpSelectionSize;
         slotHeight = slotMachineRenderers[0].bounds.max.y - slotMachineRenderers[0].bounds.min.y;
         slotCount = slotMachineRenderers.Count;
 
-        // Initializing data structures
-        winningPowerUpHistory = new List<Guid>();
-        powerUpWinCounts = new Dictionary<Guid, int>();
         slotMachineSlots = new Queue<SlotMachineSlot>();
         for (int i = (slotCount - 1); i >= 0; i++) {
             slotMachineSlots.Enqueue(new SlotMachineSlot(slotMachineRenderers[i]));
@@ -67,44 +59,19 @@ public class SlotMachine : SingletonBase<SlotMachine> {
     }
 
     void Start() {
-        // Get a list of Guids for all PowerUp Prefabs we loaded
         powerUpGuids = powerUpDataStore.GetAllPowerUpGuids();
-        foreach (Guid powerUpGuid in powerUpGuids) {
-            powerUpWinCounts[powerUpGuid] = 0;
-        }
+        slotPlanner = new SlotMachineSlotPlanner(powerUpGuids);
     }
 
     // Kick off the Slot Machine and select the PowerUp that the player 
     //   will receive once the Reel stops.
     public void PlaySlotsForPowerUp() {
-        Guid winningPowerUpGuid = SelectWinningPowerUp();
+        Guid winningPowerUpGuid = slotPlanner.SelectWinningPowerUp();
         GameObject powerUpPrefab = powerUpDataStore.GetPowerUpByGuid(winningPowerUpGuid);
         winningPowerUp = Instantiate(powerUpPrefab, Vector3.zero, Quaternion.identity).GetComponent<IPowerUp>();
 
         gameState.SetSlotMachineState(SlotMachineState.START_SPINNING);
         fullRotationsToComplete = Random.Range((int) fullRotationsToCompleteRange.x, (int) fullRotationsToCompleteRange.y);
-    }
-
-    // Select a smart "pseudo" random PowerUp that the player will receive once the spinning
-    //   is over, being mindful of the number of times other PowerUps have been selected.
-    private Guid SelectWinningPowerUp() {
-        // Create a list of PowerUps ordered by number of times they've been selected before
-        List<Guid> potentialWinners = powerUpWinCounts.OrderBy(winCount => winCount.Value)
-                .Select(winCount => winCount.Key)
-                .ToList<Guid>();
-
-        // Pick PowerUp from a subset of PowerUps that have been picked least often
-        int powerUpSelectionSize = potentialWinners.Count < minPowerUpSelectionSize
-                ? potentialWinners.Count : Math.Max(potentialWinners.Count / 2, minPowerUpSelectionSize);
-        potentialWinners = potentialWinners.GetRange(0, powerUpSelectionSize);
-
-        // Select random PowerUp from the selection
-        Guid winningPowerUpGuid = potentialWinners[Random.Range(0, potentialWinners.Count)];
-
-        // Record the winner for tracking purposes
-        RecordWinningPowerUp(winningPowerUpGuid);
-
-        return winningPowerUpGuid;
     }
 
     void Update() {
@@ -165,7 +132,7 @@ public class SlotMachine : SingletonBase<SlotMachine> {
             loopingSlot.MoveSlot(UP, visibleReelYBounds.y - visibleReelYBounds.x + slotHeight);
 
             // Update Slot PowerUp(Icon)
-            Guid newSlotPowerUpGuid = SelectPowerUpForNewSlot();
+            Guid newSlotPowerUpGuid = slotPlanner.SelectPowerUpForNewSlot();
             Sprite newSlotSprite = powerUpDataStore.GetPowerUpIconByGuid(newSlotPowerUpGuid);
             loopingSlot.SetSlotSprite(newSlotSprite, newSlotPowerUpGuid);
 
@@ -174,29 +141,6 @@ public class SlotMachine : SingletonBase<SlotMachine> {
             slotShiftCount++;
             reelRotationsCount = slotShiftCount / slotCount;
         }
-    }
-
-    // Select a PowerUp for the next Slot on the Reel
-    private Guid SelectPowerUpForNewSlot() {
-        IList<Guid> powerUpsToAvoid = new List<Guid>();
-        powerUpsToAvoid.Add(slotMachineSlots.ElementAt(slotCount - 2).PowerUpGuid);
-        if (reelRotationsCount == fullRotationsToComplete - 1) {
-            powerUpsToAvoid.Add(winningPowerUp.Id);
-        }
-        
-        Guid nextPowerUpGuid;
-        do {
-            nextPowerUpGuid = powerUpGuids[Random.Range(0, powerUpGuids.Count)];
-        } while (powerUpsToAvoid.Contains(nextPowerUpGuid));
-
-        return nextPowerUpGuid;
-    }
-
-    // Track the order of PowerUps the player has won and how many times.
-    private void RecordWinningPowerUp(Guid winningPowerUpGuid) {
-        int winCount = powerUpWinCounts[winningPowerUpGuid];
-        powerUpWinCounts[winningPowerUpGuid] = winCount++;
-        winningPowerUpHistory.Add(winningPowerUpGuid);
     }
 
     /* ~~~~~~~~~~~~~~~~~~~~~~ SlotMachineSlot Wrapper Class ~~~~~~~~~~~~~~~~~~~~~~ */
@@ -232,5 +176,74 @@ public class SlotMachine : SingletonBase<SlotMachine> {
         public bool HasMovedPassedY(int direction, float yPos) {
             return Mathf.Sign(direction) == Mathf.Sign(slotTransform.position.y - yPos);
         }
+    }
+
+    public class SlotMachineSlotPlanner {
+
+        private const int MIN_SELECTION_SIZE = 3;
+
+        private int powerUpCount;
+
+        private IList<Guid> powerUpGuids;
+
+        // List of all PowerUps won in the SlotMachine in chronological order
+        private IList<Guid> powerUpWinHistory;
+
+        // Map of each PowerUp and the number of times it has been won
+        private IDictionary<Guid, int> powerUpWinCounts;
+
+        public SlotMachineSlotPlanner(IList<Guid> powerUpGuids) {
+            powerUpCount = powerUpGuids.Count;
+            this.powerUpGuids = powerUpGuids;
+            powerUpWinHistory = new List<Guid>();
+            powerUpWinCounts = new Dictionary<Guid, int>();
+            foreach (Guid powerUpGuid in powerUpGuids) {
+                powerUpWinCounts[powerUpGuid] = 0;
+            }
+        }
+
+        // Select a smart "pseudo" random PowerUp that the player will receive once the spinning
+        //   is over, being mindful of the number of times other PowerUps have been selected.
+        public Guid SelectWinningPowerUp() {
+            // Create a list of PowerUps ordered by number of times they've been selected before
+            List<Guid> powerUpSelection = powerUpWinCounts.OrderBy(winCount => winCount.Value)
+                    .Select(winCount => winCount.Key)
+                    .ToList<Guid>();
+
+            // Limit selection to the PowerUps picked least often
+            int toIndex = powerUpCount > 2 * MIN_SELECTION_SIZE ? powerUpCount / 2 : MIN_SELECTION_SIZE;
+            powerUpSelection.GetRange(0, toIndex);
+
+            // Select random PowerUp from the selection
+            Guid winningPowerUpGuid = powerUpSelection[Random.Range(0, powerUpSelection.Count)];
+
+            // Record the winner for tracking purposes
+            RecordWinningPowerUp(winningPowerUpGuid);
+
+            return winningPowerUpGuid;
+        }
+
+        // Select a PowerUp for the next Slot on the Reel
+        public Guid SelectPowerUpForNewSlot() {
+            IList<Guid> powerUpsToAvoid = new List<Guid>();
+            powerUpsToAvoid.Add(slotMachineSlots.ElementAt(slotCount - 2).PowerUpGuid);
+            if (reelRotationsCount == fullRotationsToComplete - 1) {
+                powerUpsToAvoid.Add(winningPowerUp.Id);
+            }
+
+            Guid nextPowerUpGuid;
+            do {
+                nextPowerUpGuid = powerUpGuids[Random.Range(0, powerUpGuids.Count)];
+            } while (powerUpsToAvoid.Contains(nextPowerUpGuid));
+
+            return nextPowerUpGuid;
+        }
+
+        // Track the order of PowerUps the player has won and how many times.
+        public void RecordWinningPowerUp(Guid winningPowerUpGuid) {
+            powerUpWinCounts[winningPowerUpGuid]++;
+            winningPowerUpHistory.Add(winningPowerUpGuid);
+        }
+
     }
 }
